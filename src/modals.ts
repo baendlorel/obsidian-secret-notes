@@ -25,8 +25,8 @@ export class CryptorModal extends Modal {
     const passwordInput = this.createInputField(form, '密码', 'password');
     const confirmInput = this.createInputField(form, '确认密码', 'password');
     const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '确认' });
     const cancelButton = actions.createEl('button', { text: '取消' });
+    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '确认' });
 
     confirmButton.addEventListener('click', () => {
       void this.handleEncryptSubmit({
@@ -263,8 +263,8 @@ export class DecryptedModal extends Modal {
     });
 
     const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '关闭并重新加密' });
     const cancelButton = actions.createEl('button', { text: '取消' });
+    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '关闭并重新加密' });
 
     confirmButton.addEventListener('click', () => {
       void this.handleExplicitEncrypt(confirmButton);
