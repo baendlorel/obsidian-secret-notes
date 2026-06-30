@@ -1,0 +1,65 @@
+.secret-notes-panel {
+  margin: 1em 0;
+}
+
+.secret-notes-card {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--background-modifier-border) 70%, var(--interactive-accent) 30%);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--background-secondary) 0%, var(--background-primary-alt) 100%);
+}
+
+.secret-notes-card--plain {
+  border-style: dashed;
+}
+
+.secret-notes-card__badge {
+  width: fit-content;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--interactive-accent) 16%, transparent);
+  color: var(--text-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.secret-notes-card__title {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.secret-notes-card__meta {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.secret-notes-card__warning {
+  color: var(--text-warning);
+  font-size: 0.9rem;
+}
+
+.secret-notes-card__actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.secret-notes-button {
+  width: fit-content;
+}
+
+.secret-notes-modal__hint {
+  margin-bottom: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.secret-notes-modal__textarea {
+  min-height: 16rem;
+  resize: vertical;
+}
