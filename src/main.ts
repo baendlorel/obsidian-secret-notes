@@ -3,11 +3,14 @@ import { SECRET_LANG } from './constants';
 import { decryptSecret, encryptSecret } from './crypto';
 import { SecretEditorModal, SecretFormModal } from './modals';
 import { findSecretBlocks, parseSecretPayload, renderPlainPlaceholder, serializeSecretFence } from './secret-blocks';
-import type { SecretPayload, SessionState } from './types';
+import type { SecretBlock, SecretPayload, SessionState } from './types';
 import { buildStateKey, computeBlockedUntil } from './utils';
 
 export default class SecretNotesPlugin extends Plugin {
   private sessionState = new Map<string, SessionState>();
+  private activePlainBlockByFile = new Map<string, SecretBlock>();
+  private suppressedPlainBlockByFile = new Map<string, string>();
+  private isEncryptionPromptOpen = false;
   private isProgrammaticChange = false;
 
   async onload(): Promise<void> {
@@ -41,6 +44,8 @@ export default class SecretNotesPlugin extends Plugin {
       this.app.workspace.on('file-open', (file) => {
         if (!file) {
           this.sessionState.clear();
+          this.activePlainBlockByFile.clear();
+          this.suppressedPlainBlockByFile.clear();
           return;
         }
 
@@ -49,8 +54,72 @@ export default class SecretNotesPlugin extends Plugin {
             this.sessionState.delete(key);
           }
         }
+
+        for (const path of [...this.activePlainBlockByFile.keys()]) {
+          if (path !== file.path) {
+            this.activePlainBlockByFile.delete(path);
+          }
+        }
+
+        for (const path of [...this.suppressedPlainBlockByFile.keys()]) {
+          if (path !== file.path) {
+            this.suppressedPlainBlockByFile.delete(path);
+          }
+        }
       }),
     );
+
+    this.registerInterval(
+      window.setInterval(() => {
+        void this.encryptBlockAfterCursorLeaves();
+      }, 250),
+    );
+  }
+
+  private async encryptBlockAfterCursorLeaves(): Promise<void> {
+    if (this.isProgrammaticChange || this.isEncryptionPromptOpen) {
+      return;
+    }
+
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view || !view.file) {
+      return;
+    }
+
+    if (view.getMode() !== 'source') {
+      this.activePlainBlockByFile.delete(view.file.path);
+      return;
+    }
+
+    const editor = view.editor;
+    const currentBlock = this.findPlainBlockAtCursor(editor);
+    const previousBlock = this.activePlainBlockByFile.get(view.file.path);
+    const suppressedToken = this.suppressedPlainBlockByFile.get(view.file.path);
+
+    if (currentBlock) {
+      const currentToken = this.getBlockToken(currentBlock);
+      if (suppressedToken === currentToken) {
+        this.suppressedPlainBlockByFile.delete(view.file.path);
+      }
+    }
+
+    if (previousBlock && (!currentBlock || previousBlock.from !== currentBlock.from)) {
+      if (suppressedToken === this.getBlockToken(previousBlock)) {
+        this.activePlainBlockByFile.delete(view.file.path);
+        return;
+      }
+
+      await this.encryptSpecificBlockInEditor(editor, view.file, previousBlock);
+      this.syncTrackedPlainBlock(view.file.path, editor);
+      return;
+    }
+
+    if (currentBlock) {
+      this.activePlainBlockByFile.set(view.file.path, currentBlock);
+      return;
+    }
+
+    this.activePlainBlockByFile.delete(view.file.path);
   }
 
   private async encryptActivePreviewBlocks(): Promise<void> {
@@ -119,10 +188,104 @@ export default class SecretNotesPlugin extends Plugin {
     new Notice('Encrypted secret block(s).');
   }
 
+  private async encryptSpecificBlockInEditor(editor: Editor, file: TFile, block: SecretBlock): Promise<void> {
+    if (this.isEncryptionPromptOpen) {
+      return;
+    }
+
+    const content = editor.getValue();
+    const liveBlock = findSecretBlocks(content).find(
+      (candidate) =>
+        candidate.lineStart === block.lineStart &&
+        candidate.lineEnd === block.lineEnd &&
+        !parseSecretPayload(candidate.content),
+    );
+
+    if (!liveBlock) {
+      return;
+    }
+
+    const stateKey = buildStateKey(file.path, liveBlock.from);
+    const session = this.getOrCreateSession(stateKey);
+    this.isEncryptionPromptOpen = true;
+    const result = await SecretFormModal.openForEncrypt(this.app, {
+      initialHint: '',
+      initialTitle: '',
+      password: session.password,
+    });
+    this.isEncryptionPromptOpen = false;
+
+    if (!result) {
+      this.suppressedPlainBlockByFile.set(file.path, this.getBlockToken(liveBlock));
+      this.activePlainBlockByFile.delete(file.path);
+      new Notice('Skipped encrypting a secret block.');
+      return;
+    }
+
+    this.suppressedPlainBlockByFile.delete(file.path);
+
+    const payload = await encryptSecret(liveBlock.content, result.password, {
+      title: result.title,
+      hint: result.hint,
+    });
+
+    session.password = result.password;
+    session.lastPlaintext = liveBlock.content;
+    session.failureCount = 0;
+    session.blockedUntil = 0;
+
+    const replacement = serializeSecretFence(payload);
+    const nextContent = `${content.slice(0, liveBlock.from)}${replacement}${content.slice(liveBlock.to)}`;
+
+    this.isProgrammaticChange = true;
+    editor.setValue(nextContent);
+    this.isProgrammaticChange = false;
+    new Notice('Encrypted secret block.');
+  }
+
   private renderSecretBlock(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
     const payload = parseSecretPayload(source);
     if (!payload) {
-      renderPlainPlaceholder(el);
+      const section = ctx.getSectionInfo(el);
+      renderPlainPlaceholder(el, async () => {
+        if (!section) {
+          new Notice('Cannot resolve secret block position.');
+          return;
+        }
+
+        if (this.isEncryptionPromptOpen) {
+          return;
+        }
+
+        const stateKey = buildStateKey(ctx.sourcePath, section.lineStart);
+        const session = this.getOrCreateSession(stateKey);
+
+        this.isEncryptionPromptOpen = true;
+        const result = await SecretFormModal.openForEncrypt(this.app, {
+          initialHint: '',
+          initialTitle: '',
+          password: session.password,
+        });
+        this.isEncryptionPromptOpen = false;
+
+        if (!result) {
+          new Notice('Skipped encrypting a secret block.');
+          return;
+        }
+
+        const nextPayload = await encryptSecret(source, result.password, {
+          title: result.title,
+          hint: result.hint,
+        });
+
+        session.password = result.password;
+        session.lastPlaintext = source;
+        session.failureCount = 0;
+        session.blockedUntil = 0;
+
+        await this.replaceBlockBySection(ctx.sourcePath, section.lineStart, section.lineEnd, nextPayload);
+        new Notice('Secret block encrypted.');
+      });
       return;
     }
 
@@ -241,5 +404,29 @@ export default class SecretNotesPlugin extends Plugin {
     };
     this.sessionState.set(key, session);
     return session;
+  }
+
+  private findPlainBlockAtCursor(editor: Editor): SecretBlock | null {
+    const cursorLine = editor.getCursor('head').line;
+    const blocks = findSecretBlocks(editor.getValue());
+    return (
+      blocks.find(
+        (block) => block.lineStart <= cursorLine && cursorLine <= block.lineEnd && !parseSecretPayload(block.content),
+      ) ?? null
+    );
+  }
+
+  private syncTrackedPlainBlock(filePath: string, editor: Editor): void {
+    const currentBlock = this.findPlainBlockAtCursor(editor);
+    if (currentBlock) {
+      this.activePlainBlockByFile.set(filePath, currentBlock);
+      return;
+    }
+
+    this.activePlainBlockByFile.delete(filePath);
+  }
+
+  private getBlockToken(block: SecretBlock): string {
+    return `${block.lineStart}:${block.lineEnd}`;
   }
 }

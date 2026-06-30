@@ -27,6 +27,8 @@ export function findSecretBlocks(content: string): SecretBlock[] {
       blocks.push({
         from: startOffset,
         to: endOffset,
+        lineStart: startLine,
+        lineEnd: index,
         raw: content.slice(startOffset, endOffset),
         content: blockLines.join('\n'),
       });
@@ -67,13 +69,30 @@ export function serializeSecretFence(payload: SecretPayload): string {
   return `\`\`\`secret\n${JSON.stringify(payload, null, 2)}\n\`\`\`\n`;
 }
 
-export function renderPlainPlaceholder(el: HTMLElement): void {
+export function renderPlainPlaceholder(el: HTMLElement, onEncrypt?: () => void | Promise<void>): void {
   el.empty();
   el.addClass('secret-notes-panel');
   const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
   card.createDiv({ cls: 'secret-notes-card__badge', text: '待加密' });
+
   card.createDiv({
     cls: 'secret-notes-card__meta',
-    text: '切换到预览模式或保存文件时，这个代码块会要求输入密码并转为密文。',
+    text: onEncrypt
+      ? '这个代码块还是明文。你可以点击下方按钮手动加密。'
+      : '切换到预览模式或保存文件时，这个代码块会要求输入密码并转为密文。',
+  });
+
+  if (!onEncrypt) {
+    return;
+  }
+
+  const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
+  const encryptButton = actions.createEl('button', {
+    cls: 'mod-cta secret-notes-button',
+    text: '加密这个块',
+  });
+
+  encryptButton.addEventListener('click', () => {
+    void onEncrypt();
   });
 }

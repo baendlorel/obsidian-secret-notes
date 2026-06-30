@@ -9,6 +9,8 @@ export type SecretPayload = {
 export type SecretBlock = {
   from: number;
   to: number;
+  lineStart: number;
+  lineEnd: number;
   raw: string;
   content: string;
 };

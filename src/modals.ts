@@ -10,6 +10,7 @@ export class SecretFormModal extends Modal {
   private resolveValue!: (value: SecretFormResult | null) => void;
 
   private password = '';
+  private confirmPassword = '';
   private title = '';
   private hintValue = '';
 
@@ -73,6 +74,16 @@ export class SecretFormModal extends Modal {
     });
 
     if (this.mode === 'encrypt') {
+      new Setting(this.contentEl).setName('Confirm password').addText((component) => {
+        component
+          .setPlaceholder('Enter password again')
+          .setValue(this.initialPassword ?? '')
+          .onChange((value) => {
+            this.confirmPassword = value;
+          });
+        component.inputEl.type = 'password';
+      });
+
       new Setting(this.contentEl)
         .setName('Title')
         .setDesc('Optional label shown in preview.')
@@ -106,6 +117,11 @@ export class SecretFormModal extends Modal {
           .onClick(() => {
             if (!this.password.trim()) {
               new Notice('Password is required.');
+              return;
+            }
+
+            if (this.mode === 'encrypt' && this.password !== this.confirmPassword) {
+              new Notice('Passwords do not match.');
               return;
             }
 
