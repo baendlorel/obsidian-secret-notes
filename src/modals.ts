@@ -82,6 +82,37 @@ export class CryptorModal extends Modal {
     return this.waitForResult();
   }
 
+  openChangePassword(payload: SecretPayload): Promise<SecretPayload | null> {
+    this.preparePromise();
+    this.titleEl.setText('验证旧密码');
+    this.contentEl.empty();
+
+    const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
+    const passwordInput = this.createInputField(form, '当前密码', 'password', '', true);
+    const errorEl = this.contentEl.createDiv({ cls: 'secret-notes-card__warning' });
+
+    const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
+    const cancelButton = actions.createEl('button', { text: '取消' });
+    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '下一步' });
+
+    confirmButton.addEventListener('click', () => {
+      void this.handleChangePasswordSubmit({
+        payload,
+        passwordInput,
+        errorEl,
+        confirmButton,
+      });
+    });
+
+    cancelButton.addEventListener('click', () => {
+      this.close();
+    });
+
+    this.open();
+    passwordInput.focus();
+    return this.waitForResult();
+  }
+
   private async openDecrypted(
     payload: SecretPayload,
     password: string,
@@ -230,12 +261,45 @@ export class CryptorModal extends Modal {
       passwordInput.select();
     }
   }
+
+  private async handleChangePasswordSubmit(args: {
+    payload: SecretPayload;
+    passwordInput: HTMLInputElement;
+    errorEl: HTMLDivElement;
+    confirmButton: HTMLButtonElement;
+  }): Promise<void> {
+    const { payload, passwordInput, errorEl, confirmButton } = args;
+
+    if (!passwordInput.value) {
+      errorEl.setText('请输入当前密码');
+      passwordInput.focus();
+      return;
+    }
+
+    errorEl.empty();
+    confirmButton.disabled = true;
+
+    try {
+      const plaintext = await decryptSecret(payload, passwordInput.value);
+      this.handoffInProgress = true;
+      this.close();
+      const result = await this.openEncrypt(plaintext, {
+        title: payload.title,
+        hint: payload.hint,
+      });
+      this.finish(result);
+    } catch (error) {
+      console.error(error);
+      errorEl.setText('当前密码错误');
+      confirmButton.disabled = false;
+      passwordInput.select();
+    }
+  }
 }
 
 export class DecryptedModal extends Modal {
   private resolver?: (result: SecretPayload | null) => void;
   private settled = false;
-  private shouldEncryptOnClose = true;
 
   private readonly titleInputValue: string;
   private readonly hintInputValue: string;
@@ -275,16 +339,14 @@ export class DecryptedModal extends Modal {
     });
 
     const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-    const cancelButton = actions.createEl('button', { text: '取消' });
     const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '关闭并重新加密' });
+    const closeButton = actions.createEl('button', { text: '直接关闭' });
 
     confirmButton.addEventListener('click', () => {
       void this.handleExplicitEncrypt(confirmButton);
     });
 
-    cancelButton.addEventListener('click', () => {
-      this.shouldEncryptOnClose = false;
-      this.finish(null);
+    closeButton.addEventListener('click', () => {
       this.close();
     });
 
@@ -301,11 +363,6 @@ export class DecryptedModal extends Modal {
     this.contentEl.empty();
 
     if (this.settled) {
-      return;
-    }
-
-    if (!this.shouldEncryptOnClose) {
-      this.finish(null);
       return;
     }
 

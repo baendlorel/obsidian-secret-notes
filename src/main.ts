@@ -1,16 +1,100 @@
-import { Plugin } from 'obsidian';
+import {
+  MarkdownView,
+  Notice,
+  Plugin,
+  type MarkdownPostProcessorContext,
+  type MarkdownSectionInformation,
+  type TFile,
+} from 'obsidian';
+import { isEncrypted } from './crypto.js';
 import { SECRET_LANG } from './constants.js';
 import { CryptorModal } from './modals.js';
+import { renderEncryptedPlaceholder, renderPlainPlaceholder, serializeSecretFence } from './secret-blocks.js';
+import type { SecretPayload } from './types.js';
 
 export default class SecretNotesPlugin extends Plugin {
   async onload(): Promise<void> {
     this.registerMarkdownCodeBlockProcessor(SECRET_LANG, (source, el, ctx) => {
-      const b = activeDocument.createElement('button');
-      b.append('点击加密');
-      b.addEventListener('click', () => {
-        new CryptorModal(this.app).openEncrypt();
+      const payload = isEncrypted(source);
+
+      if (!payload) {
+        renderPlainPlaceholder(el, async () => {
+          const result = await new CryptorModal(this.app).openEncrypt(source);
+          if (!result) {
+            return;
+          }
+
+          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
+        });
+        return;
+      }
+
+      renderEncryptedPlaceholder(el, payload, {
+        onView: async () => {
+          const result = await new CryptorModal(this.app).openPasswordInput(payload);
+          if (!result) {
+            return;
+          }
+
+          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
+        },
+        onChangePassword: async () => {
+          const result = await new CryptorModal(this.app).openChangePassword(payload);
+          if (!result) {
+            return;
+          }
+
+          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
+        },
       });
-      el.append(`source是：[${source}]`, b);
     });
+  }
+
+  private async replaceSecretBlock(
+    ctx: MarkdownPostProcessorContext,
+    el: HTMLElement,
+    replacement: string,
+  ): Promise<void> {
+    const sectionInfo = ctx.getSectionInfo(el);
+    if (!sectionInfo) {
+      new Notice('无法定位当前 secret 代码块');
+      return;
+    }
+
+    const file = this.app.vault.getFileByPath(ctx.sourcePath);
+    if (!file) {
+      new Notice('无法找到当前文件');
+      return;
+    }
+
+    const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (activeView?.file?.path === file.path) {
+      this.replaceBlockInEditor(activeView, sectionInfo, replacement);
+      return;
+    }
+
+    await this.replaceBlockInFile(file, sectionInfo, replacement);
+  }
+
+  private replaceBlockInEditor(view: MarkdownView, sectionInfo: MarkdownSectionInformation, replacement: string): void {
+    view.editor.replaceRange(
+      replacement,
+      { line: sectionInfo.lineStart, ch: 0 },
+      { line: sectionInfo.lineEnd + 1, ch: 0 },
+    );
+  }
+
+  private async replaceBlockInFile(
+    file: TFile,
+    sectionInfo: MarkdownSectionInformation,
+    replacement: string,
+  ): Promise<void> {
+    const content = await this.app.vault.cachedRead(file);
+    const lines = content.split('\n');
+    const replacementLines = replacement.endsWith('\n')
+      ? replacement.slice(0, -1).split('\n')
+      : replacement.split('\n');
+    lines.splice(sectionInfo.lineStart, sectionInfo.lineEnd - sectionInfo.lineStart + 1, ...replacementLines);
+    await this.app.vault.modify(file, lines.join('\n'));
   }
 }

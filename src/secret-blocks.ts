@@ -89,10 +89,49 @@ export function renderPlainPlaceholder(el: HTMLElement, onEncrypt?: () => void |
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
   const encryptButton = actions.createEl('button', {
     cls: 'mod-cta secret-notes-button',
-    text: '加密这个块',
+    text: '点击以加密',
   });
 
   encryptButton.addEventListener('click', () => {
     void onEncrypt();
+  });
+}
+
+export function renderEncryptedPlaceholder(
+  el: HTMLElement,
+  payload: SecretPayload,
+  actions: {
+    onView: () => void | Promise<void>;
+    onChangePassword: () => void | Promise<void>;
+  },
+): void {
+  el.empty();
+  el.addClass('secret-notes-panel');
+
+  const card = el.createDiv({ cls: 'secret-notes-card' });
+  card.createDiv({ cls: 'secret-notes-card__badge', text: '已加密' });
+
+  if (payload.title) {
+    card.createDiv({ cls: 'secret-notes-card__title', text: payload.title });
+  }
+
+  card.createDiv({
+    cls: 'secret-notes-card__meta',
+    text: `加密时间：${payload.date}`,
+  });
+
+  const actionRow = card.createDiv({ cls: 'secret-notes-card__actions' });
+  const changePasswordButton = actionRow.createEl('button', { text: '更换密码' });
+  const viewButton = actionRow.createEl('button', {
+    cls: 'mod-cta secret-notes-button',
+    text: '查看',
+  });
+
+  changePasswordButton.addEventListener('click', () => {
+    void actions.onChangePassword();
+  });
+
+  viewButton.addEventListener('click', () => {
+    void actions.onView();
   });
 }
