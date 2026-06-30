@@ -1,5 +1,6 @@
 import { type App, Modal, Notice, Setting } from 'obsidian';
 import type { SecretEditorResult, SecretFormResult } from './types.js';
+import { btn, div, input } from 'zed-gpui';
 
 export class SecretFormModal extends Modal {
   private readonly mode: 'encrypt' | 'decrypt';
@@ -252,9 +253,12 @@ export class EncryptModal extends Modal {
     super(app);
   }
 
-  open() {
+  openEncrypt() {
     this.titleEl.setText('加密');
     this.contentEl.empty();
-    this.contentEl.append();
+    this.contentEl.append(
+      div().child_(div().setText('密码'), input(), div().setText('确认密码'), input(), btn().setText('确认')),
+    );
+    this.open();
   }
 }
