@@ -1,5 +1,5 @@
-import { App, Modal, Notice, Setting } from 'obsidian';
-import type { SecretEditorResult, SecretFormResult } from './types';
+import { type App, Modal, Notice, Setting } from 'obsidian';
+import type { SecretEditorResult, SecretFormResult } from './types.js';
 
 export class SecretFormModal extends Modal {
   private readonly mode: 'encrypt' | 'decrypt';
@@ -244,5 +244,17 @@ export class SecretEditorModal extends Modal {
 
   onClose(): void {
     this.contentEl.empty();
+  }
+}
+
+export class EncryptModal extends Modal {
+  constructor(app: App) {
+    super(app);
+  }
+
+  open() {
+    this.titleEl.setText('加密');
+    this.contentEl.empty();
+    this.contentEl.append();
   }
 }

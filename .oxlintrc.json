@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "oxc"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "style": "warn"
+  },
+  "rules": {
+    "no-console": "off",
+    "prefer-const": "error"
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "*.config.js",
+    "*.config.mjs",
+    "main.js"
+  ]
+}
