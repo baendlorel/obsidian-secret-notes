@@ -20,10 +20,10 @@ export class CryptorModal extends Modal {
     this.contentEl.empty();
 
     const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
-    const titleInput = this.createInputField(form, '标题（可选）', 'text', defaults.title ?? '');
-    const hintInput = this.createInputField(form, '密码提示（可选）', 'text', defaults.hint ?? '');
-    const passwordInput = this.createInputField(form, '密码', 'password');
-    const confirmInput = this.createInputField(form, '确认密码', 'password');
+    const titleInput = this.createInputField(form, '标题', 'text', defaults.title ?? '');
+    const hintInput = this.createInputField(form, '密码提示', 'text', defaults.hint ?? '');
+    const passwordInput = this.createInputField(form, '密码', 'password', '', true);
+    const confirmInput = this.createInputField(form, '确认密码', 'password', '', true);
     const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
     const cancelButton = actions.createEl('button', { text: '取消' });
     const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '确认' });
@@ -54,7 +54,7 @@ export class CryptorModal extends Modal {
     this.contentEl.empty();
 
     const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
-    const passwordInput = this.createInputField(form, '密码', 'password');
+    const passwordInput = this.createInputField(form, '密码', 'password', '', true);
     const errorEl = this.contentEl.createDiv({ cls: 'secret-notes-card__warning' });
     const hintEl = this.contentEl.createDiv({ cls: 'secret-notes-modal__hint' });
     hintEl.hide();
@@ -128,12 +128,24 @@ export class CryptorModal extends Modal {
     label: string,
     type: 'text' | 'password',
     value = '',
+    required = false,
   ): HTMLInputElement {
-    parent.createDiv({ text: label });
+    this.createFieldLabel(parent, label, required);
     const field = parent.createEl('input');
     field.type = type;
     field.value = value;
     return field;
+  }
+
+  private createFieldLabel(parent: HTMLElement, label: string, required = false): HTMLDivElement {
+    const labelEl = parent.createDiv({ cls: 'secret-notes__field-label' });
+    labelEl.createSpan({ text: label });
+
+    if (required) {
+      labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
+    }
+
+    return labelEl;
   }
 
   private buildFormResult(password: string, title: string, hint: string): SecretFormResult {
@@ -250,10 +262,10 @@ export class DecryptedModal extends Modal {
     this.contentEl.empty();
 
     const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
-    this.titleInput = this.createInputField(form, '标题（可选）', this.titleInputValue);
-    this.hintInput = this.createInputField(form, '密码提示（可选）', this.hintInputValue);
+    this.titleInput = this.createInputField(form, '标题', this.titleInputValue);
+    this.hintInput = this.createInputField(form, '密码提示', this.hintInputValue);
 
-    form.createDiv({ text: '明文内容' });
+    this.createFieldLabel(form, '明文内容', true);
     this.plainTextInput = form.createEl('textarea', { cls: 'secret-notes-modal__textarea' });
     this.plainTextInput.value = this.plainTextValue;
 
@@ -308,12 +320,23 @@ export class DecryptedModal extends Modal {
       });
   }
 
-  private createInputField(parent: HTMLElement, label: string, value = ''): HTMLInputElement {
-    parent.createDiv({ text: label });
+  private createInputField(parent: HTMLElement, label: string, value = '', required = false): HTMLInputElement {
+    this.createFieldLabel(parent, label, required);
     const field = parent.createEl('input');
     field.type = 'text';
     field.value = value;
     return field;
+  }
+
+  private createFieldLabel(parent: HTMLElement, label: string, required = false): HTMLDivElement {
+    const labelEl = parent.createDiv({ cls: 'secret-notes__field-label' });
+    labelEl.createSpan({ text: label });
+
+    if (required) {
+      labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
+    }
+
+    return labelEl;
   }
 
   private collectEditorResult(): SecretEditorResult {

@@ -3,11 +3,37 @@
 }
 
 .secret-notes__encrypt-form {
-  margin-bottom: 20px;
-  display: flex;
-  gap: 10px;
-  flex-direction: column;
+  margin-top: 30px;
+  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 8.5rem) minmax(0, 1fr);
+  gap: 10px 14px;
+  align-items: center;
 }
+
+.secret-notes__encrypt-form > div {
+  color: var(--text-normal);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.secret-notes__field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.secret-notes__required-mark {
+  color: var(--text-error);
+  font-weight: 700;
+}
+
+.secret-notes__encrypt-form > input,
+.secret-notes__encrypt-form > textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .secret-notes__encrypt-form-footer {
   text-align: right;
 }
@@ -76,4 +102,11 @@
 .secret-notes-modal__textarea {
   min-height: 16rem;
   resize: vertical;
+}
+
+@media (max-width: 640px) {
+  .secret-notes__encrypt-form {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }

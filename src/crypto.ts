@@ -91,3 +91,16 @@ function base64ToBytes(value: string): Uint8Array {
 function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
+
+export function isEncrypted(block: string): SecretPayload | null {
+  let o: SecretPayload | null = null;
+  try {
+    o = JSON.parse(block);
+  } catch {}
+
+  if (!o || !o.encrypted || !o.v || !o.date) {
+    return null;
+  }
+
+  return o;
+}
