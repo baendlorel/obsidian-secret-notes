@@ -2,6 +2,15 @@ import { type App, Modal, Notice } from 'obsidian';
 import { decryptSecret, encryptSecret } from './crypto.js';
 import type { SecretEditorResult, SecretFormResult, SecretPayload } from './types.js';
 
+function createFooter(this: Modal, onYes: (el: HTMLButtonElement) => void) {
+  const e = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
+  e.createEl('button', { text: '取消' }, (v) => v.addEventListener('click', () => this.close()));
+  e.createEl('button', { text: '确认', cls: 'mod-cta secret-notes-button' }, (v) =>
+    v.addEventListener('click', () => onYes(v)),
+  );
+  return e;
+}
+
 export class CryptorModal extends Modal {
   private resolver?: (result: SecretPayload | null) => void;
   private settled = false;
@@ -20,28 +29,21 @@ export class CryptorModal extends Modal {
     this.contentEl.empty();
 
     const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
-    const titleInput = this.createInputField(form, '标题', 'text', defaults.title ?? '');
-    const hintInput = this.createInputField(form, '密码提示', 'text', defaults.hint ?? '');
-    const passwordInput = this.createInputField(form, '密码', 'password', '', true);
-    const confirmInput = this.createInputField(form, '确认密码', 'password', '', true);
-    const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-    const cancelButton = actions.createEl('button', { text: '取消' });
-    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '确认' });
+    const passwordInput = this.input(form, '密码', 'password', '', true);
+    const titleInput = this.input(form, '标题', 'text', defaults.title);
+    const hintInput = this.input(form, '密码提示', 'text', defaults.hint);
+    const confirmInput = this.input(form, '确认密码', 'password', '', true);
 
-    confirmButton.addEventListener('click', () => {
-      void this.handleEncryptSubmit({
+    createFooter.call(this, (confirmButton) =>
+      this.handleEncryptSubmit({
         plaintext,
         titleInput,
         hintInput,
         passwordInput,
         confirmInput,
         confirmButton,
-      });
-    });
-
-    cancelButton.addEventListener('click', () => {
-      this.close();
-    });
+      }),
+    );
 
     this.open();
     passwordInput.focus();
@@ -54,16 +56,12 @@ export class CryptorModal extends Modal {
     this.contentEl.empty();
 
     const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
-    const passwordInput = this.createInputField(form, '密码', 'password', '', true);
+    const passwordInput = this.input(form, '密码', 'password', '', true);
     const errorEl = this.contentEl.createDiv({ cls: 'secret-notes-card__warning' });
     const hintEl = this.contentEl.createDiv({ cls: 'secret-notes-modal__hint' });
     hintEl.hide();
 
-    const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-    const cancelButton = actions.createEl('button', { text: '取消' });
-    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '确认' });
-
-    confirmButton.addEventListener('click', () => {
+    createFooter.call(this, (confirmButton) => {
       void this.handleDecryptSubmit({
         payload,
         passwordInput,
@@ -71,10 +69,6 @@ export class CryptorModal extends Modal {
         hintEl,
         confirmButton,
       });
-    });
-
-    cancelButton.addEventListener('click', () => {
-      this.close();
     });
 
     this.open();
@@ -87,8 +81,9 @@ export class CryptorModal extends Modal {
     this.titleEl.setText('验证旧密码');
     this.contentEl.empty();
 
+    // TODO 难道不能用new FormData form元素吗？一定要逐个处理吗
     const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
-    const passwordInput = this.createInputField(form, '当前密码', 'password', '', true);
+    const passwordInput = this.input(form, '当前密码', 'password', '', true);
     const errorEl = this.contentEl.createDiv({ cls: 'secret-notes-card__warning' });
 
     const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
@@ -154,7 +149,7 @@ export class CryptorModal extends Modal {
     this.resolver = undefined;
   }
 
-  private createInputField(
+  private input(
     parent: HTMLElement,
     label: string,
     type: 'text' | 'password',
@@ -322,6 +317,7 @@ export class DecryptedModal extends Modal {
   }
 
   openEditor(): Promise<SecretPayload | null> {
+    this.modalEl.addClass('secret-notes-modal--decrypted');
     this.titleEl.setText('编辑明文');
     this.contentEl.empty();
 
@@ -339,26 +335,19 @@ export class DecryptedModal extends Modal {
     });
 
     const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '关闭并重新加密' });
-    const closeButton = actions.createEl('button', { text: '直接关闭' });
-
-    confirmButton.addEventListener('click', () => {
-      void this.handleExplicitEncrypt(confirmButton);
-    });
-
-    closeButton.addEventListener('click', () => {
-      this.close();
+    actions.createEl('button', { text: '取消' }, (v) => v.addEventListener('click', () => this.close()));
+    actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '保存' }, (v) => {
+      v.addEventListener('click', () => this.handleExplicitEncrypt(v));
     });
 
     this.open();
     this.plainTextInput.focus();
 
-    return new Promise((resolve) => {
-      this.resolver = resolve;
-    });
+    return new Promise((r) => (this.resolver = r));
   }
 
   override onClose(): void {
+    this.modalEl.removeClass('secret-notes-modal--decrypted');
     this.titleEl.empty();
     this.contentEl.empty();
 
@@ -379,21 +368,19 @@ export class DecryptedModal extends Modal {
 
   private createInputField(parent: HTMLElement, label: string, value = '', required = false): HTMLInputElement {
     this.createFieldLabel(parent, label, required);
-    const field = parent.createEl('input');
-    field.type = 'text';
-    field.value = value;
-    return field;
+    return parent.createEl('input', undefined, (v) => {
+      v.type = 'text';
+      v.value = value;
+    });
   }
 
   private createFieldLabel(parent: HTMLElement, label: string, required = false): HTMLDivElement {
-    const labelEl = parent.createDiv({ cls: 'secret-notes__field-label' });
-    labelEl.createSpan({ text: label });
-
-    if (required) {
-      labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
-    }
-
-    return labelEl;
+    return parent.createDiv({ cls: 'secret-notes__field-label' }, (v) => {
+      v.createSpan({ text: label });
+      if (required) {
+        v.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
+      }
+    });
   }
 
   private collectEditorResult(): SecretEditorResult {

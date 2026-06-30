@@ -10,7 +10,6 @@ import { isEncrypted } from './crypto.js';
 import { SECRET_LANG } from './constants.js';
 import { CryptorModal } from './modals.js';
 import { renderEncryptedPlaceholder, renderPlainPlaceholder, serializeSecretFence } from './secret-blocks.js';
-import type { SecretPayload } from './types.js';
 
 export default class SecretNotesPlugin extends Plugin {
   async onload(): Promise<void> {

@@ -99,8 +99,16 @@
   line-height: 1.45;
 }
 
+.secret-notes-modal--decrypted {
+  width: min(92vw, 960px);
+}
+
+.secret-notes-modal--decrypted .modal-content {
+  height: min(82vh, 760px);
+}
+
 .secret-notes-modal__textarea {
-  min-height: 16rem;
+  min-height: 28rem;
   resize: vertical;
 }
 
