@@ -45,6 +45,7 @@ const ctx = await esbuild.context({
   target: 'es2020',
   platform: 'browser',
   sourcemap: watch ? 'inline' : false,
+  minify: true,
   logLevel: 'info',
   plugins: [zedGpuiPlugin.esbuild()],
   outfile: join(outdir, 'main.js'),

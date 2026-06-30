@@ -11,7 +11,7 @@
     "forceConsistentCasingInFileNames": true,
     "rootDir": ".",
     "outDir": "dist",
-    "types": ["node", "liuyao", "solarlunar"]
+    "types": ["node"]
   },
   "include": ["./src/**/*.ts", "./src/**/*.d.ts", "./scripts/**/*.ts"]
 }
