@@ -2,6 +2,12 @@
   margin: 1em 0;
 }
 
+.secret-notes__encrypt-form {
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
 .secret-notes-card {
   display: grid;
   gap: 0.65rem;
