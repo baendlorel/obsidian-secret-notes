@@ -1,40 +1,40 @@
-export type SecretPayload = {
+export interface SecretPayload {
   v: number;
   title?: string;
   hint?: string;
   encrypted: string;
   date: string;
-};
+}
 
-export type SecretBlock = {
+export interface SecretBlock {
   from: number;
   to: number;
   lineStart: number;
   lineEnd: number;
   raw: string;
   content: string;
-};
+}
 
-export type SecretMeta = {
+export interface SecretMeta {
   title?: string;
   hint?: string;
-};
+}
 
-export type SessionState = {
+export interface SessionState {
   password?: string;
   lastPlaintext?: string;
   failureCount: number;
   blockedUntil: number;
-};
+}
 
-export type SecretFormResult = {
+export interface SecretFormResult {
   password: string;
   title?: string;
   hint?: string;
-};
+}
 
-export type SecretEditorResult = {
+export interface SecretEditorResult {
   plaintext: string;
   title: string;
   hint: string;
-};
+}

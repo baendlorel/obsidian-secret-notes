@@ -1,5 +1,6 @@
-import { SECRET_VERSION } from './constants';
-import type { SecretMeta, SecretPayload } from './types';
+import { SECRET_VERSION } from './constants.js';
+import type { SecretMeta, SecretPayload } from './types.js';
+import { toArrayBuffer, bytesToBase64, dtm, base64ToBytes } from './utils.js';
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -25,7 +26,7 @@ export async function encryptSecret(plainText: string, password: string, meta: S
     title: meta.title?.trim() || undefined,
     hint: meta.hint?.trim() || undefined,
     encrypted: `${bytesToBase64(iv)}:${bytesToBase64(tag)}:${bytesToBase64(cipherBytes)}`,
-    date: formatDate(new Date()),
+    date: dtm(new Date()),
   };
 }
 
@@ -59,37 +60,6 @@ async function deriveKey(password: string): Promise<CryptoKey> {
   const passwordBytes = textEncoder.encode(password);
   const hash = await crypto.subtle.digest('SHA-256', passwordBytes);
   return crypto.subtle.importKey('raw', hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
-}
-
-function formatDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  const hours = `${date.getHours()}`.padStart(2, '0');
-  const minutes = `${date.getMinutes()}`.padStart(2, '0');
-  const seconds = `${date.getSeconds()}`.padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
-
-function bytesToBase64(bytes: Uint8Array): string {
-  let binary = '';
-  for (const byte of bytes) {
-    binary += String.fromCharCode(byte);
-  }
-  return btoa(binary);
-}
-
-function base64ToBytes(value: string): Uint8Array {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
-}
-
-function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
 }
 
 export function isEncrypted(block: string): SecretPayload | null {
