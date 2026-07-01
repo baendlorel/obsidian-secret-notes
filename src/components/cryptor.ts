@@ -1,25 +1,19 @@
-import { type App, Modal, Notice } from 'obsidian';
+import { type App, Notice } from 'obsidian';
 import { decryptSecret, encryptSecret } from '../crypto.js';
 import type { FormChangePassword, FormEncrypt, FormEdit, SecretPayload } from '../types.js';
-import { createForm } from './form.js';
+import { SecretModal } from './modal.js';
 import { EditModal } from './edit.js';
 
-export class CryptorModal extends Modal {
-  private resolver?: (result: SecretPayload | null) => void;
-  private settled = false;
-  private handoffInProgress = false;
-
+export class CryptorModal extends SecretModal {
   constructor(app: App) {
     super(app);
   }
 
-  // #region Services
   openEncrypt(plaintext = ''): Promise<SecretPayload | null> {
-    this.preparePromise();
+    this.prepare();
     this.titleEl.setText('加密');
 
-    createForm(
-      this,
+    this.createForm(
       [
         {
           name: 'password',
@@ -68,10 +62,9 @@ export class CryptorModal extends Modal {
   }
 
   openEdit(payload: SecretPayload): Promise<SecretPayload | null> {
-    this.preparePromise();
+    this.prepare();
     this.titleEl.setText('输入密码');
-    createForm(
-      this,
+    this.createForm(
       [
         {
           name: 'password',
@@ -110,11 +103,10 @@ export class CryptorModal extends Modal {
   }
 
   openChangePassword(payload: SecretPayload): Promise<SecretPayload | null> {
-    this.preparePromise();
+    this.prepare();
     this.titleEl.setText('验证旧密码');
 
-    createForm(
-      this,
+    this.createForm(
       [
         {
           name: 'currentPassword',
@@ -179,38 +171,4 @@ export class CryptorModal extends Modal {
       new Notice('当前密码错误');
     }
   }
-  // #endregion
-
-  // #region Controllers
-  override onClose(): void {
-    this.titleEl.empty();
-    this.contentEl.empty();
-
-    if (!this.settled && !this.handoffInProgress) {
-      this.finish(null);
-    }
-
-    this.handoffInProgress = false;
-  }
-
-  private preparePromise(): void {
-    this.settled = false;
-    this.handoffInProgress = false;
-    this.resolver = undefined;
-  }
-
-  private waitForResult(): Promise<SecretPayload | null> {
-    return new Promise((resolve) => (this.resolver = resolve));
-  }
-
-  private finish(result: SecretPayload | null): void {
-    if (this.settled) {
-      return;
-    }
-
-    this.settled = true;
-    this.resolver?.(result);
-    this.resolver = undefined;
-  }
-  // #endregion
 }

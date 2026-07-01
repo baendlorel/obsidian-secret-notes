@@ -1,29 +1,18 @@
-import { type App, Modal, Notice } from 'obsidian';
-import { encryptSecret } from '../crypto.js';
+import { type App, Notice } from 'obsidian';
 import type { SecretEditorResult, SecretPayload } from '../types.js';
+import { encryptSecret } from '../crypto.js';
+import { SecretModal } from './modal.js';
 
-export class EditModal extends Modal {
-  private resolver?: (result: SecretPayload | null) => void;
-  private settled = false;
+export class EditModal extends SecretModal {
+  private readonly payload: SecretPayload;
+  private readonly password: string;
+  private readonly plaintext: string;
 
-  private readonly titleInputValue: string;
-  private readonly hintInputValue: string;
-  private readonly plainTextValue: string;
-
-  private titleInput?: HTMLInputElement;
-  private hintInput?: HTMLInputElement;
-  private plainTextInput?: HTMLTextAreaElement;
-
-  constructor(
-    app: App,
-    private readonly payload: SecretPayload,
-    private readonly password: string,
-    plaintext: string,
-  ) {
+  constructor(app: App, payload: SecretPayload, password: string, plaintext: string) {
     super(app);
-    this.titleInputValue = payload.title ?? '';
-    this.hintInputValue = payload.hint ?? '';
-    this.plainTextValue = plaintext;
+    this.payload = { ...payload };
+    this.password = password;
+    this.plaintext = plaintext;
   }
 
   openEditor(): Promise<SecretPayload | null> {
@@ -31,29 +20,30 @@ export class EditModal extends Modal {
     this.titleEl.setText('编辑明文');
     this.contentEl.empty();
 
-    const form = this.contentEl.createDiv({ cls: 'secret-notes__encrypt-form' });
-    this.titleInput = this.createInputField(form, '标题', this.titleInputValue);
-    this.hintInput = this.createInputField(form, '密码提示', this.hintInputValue);
-
-    this.createFieldLabel(form, '明文内容', true);
-    this.plainTextInput = form.createEl('textarea', { cls: 'secret-notes-modal__textarea' });
-    this.plainTextInput.value = this.plainTextValue;
-
-    this.contentEl.createDiv({
-      cls: 'secret-notes-modal__hint',
-      text: `关闭这个窗口时会自动重新加密。上次加密时间：${this.payload.date}`,
-    });
-
-    const actions = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-    actions.createEl('button', { text: '取消' }, (v) => v.addEventListener('click', () => this.close()));
-    actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '保存' }, (v) => {
-      v.addEventListener('click', () => this.handleExplicitEncrypt(v));
-    });
+    this.createForm(
+      [
+        {
+          name: 'title',
+          label: '标题',
+          value: this.payload.title,
+        },
+        {
+          name: 'hint',
+          label: '密码提示',
+          value: this.payload.hint,
+        },
+        {
+          name: 'plaintext',
+          label: '明文内容',
+          value: 'TODO 解密为明文',
+          type: 'textarea',
+        },
+      ],
+      (data) => {},
+    );
 
     this.open();
-    this.plainTextInput.focus();
-
-    return new Promise((r) => (this.resolver = r));
+    return this.waitForResult();
   }
 
   override onClose(): void {
@@ -76,31 +66,6 @@ export class EditModal extends Modal {
       });
   }
 
-  private createInputField(parent: HTMLElement, label: string, value = '', required = false): HTMLInputElement {
-    this.createFieldLabel(parent, label, required);
-    return parent.createEl('input', undefined, (v) => {
-      v.type = 'text';
-      v.value = value;
-    });
-  }
-
-  private createFieldLabel(parent: HTMLElement, label: string, required = false): HTMLDivElement {
-    return parent.createDiv({ cls: 'secret-notes__field-label' }, (v) => {
-      v.createSpan({ text: label });
-      if (required) {
-        v.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
-      }
-    });
-  }
-
-  private collectEditorResult(): SecretEditorResult {
-    return {
-      plaintext: this.plainTextInput?.value ?? '',
-      title: this.titleInput?.value.trim() ?? '',
-      hint: this.hintInput?.value.trim() ?? '',
-    };
-  }
-
   private async encryptCurrentState(): Promise<SecretPayload> {
     const editorResult = this.collectEditorResult();
     return encryptSecret(editorResult.plaintext, this.password, {
@@ -121,15 +86,5 @@ export class EditModal extends Modal {
       new Notice('重新加密失败');
       confirmButton.disabled = false;
     }
-  }
-
-  private finish(result: SecretPayload | null): void {
-    if (this.settled) {
-      return;
-    }
-
-    this.settled = true;
-    this.resolver?.(result);
-    this.resolver = undefined;
   }
 }
