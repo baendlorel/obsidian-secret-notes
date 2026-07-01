@@ -1,6 +1,6 @@
-import { type App, Modal } from 'obsidian';
-import { type SecretPayload } from '../types.js';
-import { InputElementOptions } from '../types.js';
+import { type App, Modal, Notice } from 'obsidian';
+import type { FormEncrypt, SecretPayload, InputElementOptions } from '../types.js';
+import { encryptSecret } from '../crypto.js';
 
 export abstract class SecretModal extends Modal {
   protected resolver?: (value: SecretPayload | null) => void;
@@ -32,6 +32,7 @@ export abstract class SecretModal extends Modal {
   }
 
   override onClose(): void {
+    this.modalEl.removeClass('secret-notes-modal--decrypted');
     this.titleEl.empty();
     this.contentEl.empty();
 
@@ -42,7 +43,7 @@ export abstract class SecretModal extends Modal {
     this.handoffInProgress = false;
   }
 
-  protected createForm(inputs: InputElementOptions[], onYes: (data: unknown) => Promise<void>) {
+  protected createForm<T = unknown>(inputs: InputElementOptions[], onYes: (data: T) => Promise<void>) {
     this.contentEl.empty();
     const form = this.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
 
@@ -87,12 +88,35 @@ export abstract class SecretModal extends Modal {
       const data: Record<string, string> = {};
       new FormData(form).forEach((value, key) => (data[key] = String(value ?? '').trim()));
 
-      onYes(data as unknown).finally(() => {
+      onYes(data as T).finally(() => {
         noBtn.disabled = false;
         yesBtn.disabled = false;
       });
     });
 
     return form;
+  }
+
+  protected async encrypt(plaintext: string, data: FormEncrypt): Promise<void> {
+    const { title, hint, password, passwordConfirm: confirm } = data;
+
+    if (!password) {
+      new Notice('请输入密码');
+      return;
+    }
+
+    if (password !== confirm) {
+      new Notice('两次输入的密码不一致');
+      return;
+    }
+
+    try {
+      const encrypted = await encryptSecret(plaintext, password, { title, hint });
+      this.finish(encrypted);
+      this.close();
+    } catch (error) {
+      console.error(error);
+      new Notice('加密失败，请稍后重试');
+    }
   }
 }

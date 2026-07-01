@@ -1,6 +1,5 @@
-import { type App, Notice } from 'obsidian';
-import type { SecretEditorResult, SecretPayload } from '../types.js';
-import { encryptSecret } from '../crypto.js';
+import { type App } from 'obsidian';
+import type { FormEdit, SecretPayload } from '../types.js';
 import { SecretModal } from './modal.js';
 
 export class EditModal extends SecretModal {
@@ -18,9 +17,8 @@ export class EditModal extends SecretModal {
   openEditor(): Promise<SecretPayload | null> {
     this.modalEl.addClass('secret-notes-modal--decrypted');
     this.titleEl.setText('编辑明文');
-    this.contentEl.empty();
 
-    this.createForm(
+    this.createForm<FormEdit>(
       [
         {
           name: 'title',
@@ -35,56 +33,20 @@ export class EditModal extends SecretModal {
         {
           name: 'plaintext',
           label: '明文内容',
-          value: 'TODO 解密为明文',
+          value: this.plaintext,
           type: 'textarea',
         },
       ],
-      (data) => {},
+      (data) =>
+        this.encrypt(data.plaintext, {
+          title: data.title,
+          hint: data.hint,
+          password: this.password,
+          passwordConfirm: this.password,
+        }),
     );
 
     this.open();
     return this.waitForResult();
-  }
-
-  override onClose(): void {
-    this.modalEl.removeClass('secret-notes-modal--decrypted');
-    this.titleEl.empty();
-    this.contentEl.empty();
-
-    if (this.settled) {
-      return;
-    }
-
-    void this.encryptCurrentState()
-      .then((result) => {
-        this.finish(result);
-      })
-      .catch((error) => {
-        console.error(error);
-        new Notice('重新加密失败');
-        this.finish(null);
-      });
-  }
-
-  private async encryptCurrentState(): Promise<SecretPayload> {
-    const editorResult = this.collectEditorResult();
-    return encryptSecret(editorResult.plaintext, this.password, {
-      title: editorResult.title,
-      hint: editorResult.hint,
-    });
-  }
-
-  private async handleExplicitEncrypt(confirmButton: HTMLButtonElement): Promise<void> {
-    confirmButton.disabled = true;
-
-    try {
-      const result = await this.encryptCurrentState();
-      this.finish(result);
-      this.close();
-    } catch (error) {
-      console.error(error);
-      new Notice('重新加密失败');
-      confirmButton.disabled = false;
-    }
   }
 }

@@ -57,7 +57,7 @@ export interface FormEncrypt {
   passwordConfirm: string;
 }
 
-export interface FormEdit {
+export interface FormPasswordInput {
   password: string;
 }
 
@@ -67,4 +67,10 @@ export interface FormChangePassword {
   newPasswordConfirm: string;
   title: string;
   hint: string;
+}
+
+export interface FormEdit {
+  title: string;
+  hint: string;
+  plaintext: string;
 }
