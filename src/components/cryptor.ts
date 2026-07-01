@@ -1,5 +1,6 @@
 import { type App, Notice } from 'obsidian';
 import { decryptSecret } from '../crypto.js';
+import { t } from '../i18n/index.js';
 import type {
   FormChangePassword,
   FormEdit,
@@ -15,12 +16,12 @@ export class CryptorModal extends SecretModal {
   }
 
   private showPasswordForm(payload: NormalizedSecretPayload): void {
-    this.titleEl.setText('输入密码');
+    this.titleEl.setText(t('模态框.标题.输入密码'));
     this.createForm<FormPasswordInput>(
       [
         {
           name: 'password',
-          label: '密码',
+          label: t('模态框.字段.密码'),
           type: 'password',
           required: true,
           focus: true,
@@ -33,22 +34,22 @@ export class CryptorModal extends SecretModal {
 
   private showEditForm(payload: NormalizedSecretPayload, plaintext: string, password: string): void {
     this.modalEl.addClass('secret-notes-modal--decrypted');
-    this.titleEl.setText('编辑明文');
+    this.titleEl.setText(t('模态框.标题.编辑明文'));
     this.createForm<FormEdit>(
       [
         {
           name: 'title',
-          label: '标题',
+          label: t('模态框.字段.标题'),
           value: payload.title,
         },
         {
           name: 'hint',
-          label: '密码提示',
+          label: t('模态框.字段.密码提示'),
           value: payload.hint,
         },
         {
           name: 'plaintext',
-          label: '明文内容',
+          label: t('模态框.字段.明文内容'),
           value: plaintext,
           type: 'textarea',
         },
@@ -65,25 +66,25 @@ export class CryptorModal extends SecretModal {
 
   openEncrypt(plaintext = ''): Promise<NormalizedSecretPayload | null> {
     this.prepare();
-    this.titleEl.setText('加密');
+    this.titleEl.setText(t('模态框.标题.加密'));
 
     this.createForm<FormEncrypt>(
       [
         {
           name: 'password',
-          label: '密码',
+          label: t('模态框.字段.密码'),
           type: 'password',
           required: true,
           focus: true,
         },
         {
           name: 'passwordConfirm',
-          label: '确认密码',
+          label: t('模态框.字段.确认密码'),
           type: 'password',
           required: true,
         },
-        { name: 'title', label: '标题' },
-        { name: 'hint', label: '密码提示' },
+        { name: 'title', label: t('模态框.字段.标题') },
+        { name: 'hint', label: t('模态框.字段.密码提示') },
       ],
       (data) => this.encrypt(plaintext, data),
     );
@@ -109,12 +110,12 @@ export class CryptorModal extends SecretModal {
   }
 
   private showDecryptForm(payload: NormalizedSecretPayload): void {
-    this.titleEl.setText('永久解密');
+    this.titleEl.setText(t('模态框.标题.永久解密'));
     this.createForm<FormPasswordInput>(
       [
         {
           name: 'password',
-          label: '密码',
+          label: t('模态框.字段.密码'),
           type: 'password',
           required: true,
           focus: true,
@@ -129,7 +130,7 @@ export class CryptorModal extends SecretModal {
     const { password } = data;
 
     if (!password) {
-      new Notice('请输入密码');
+      new Notice(t('通知.请输入密码'));
       return;
     }
 
@@ -140,7 +141,7 @@ export class CryptorModal extends SecretModal {
       this.close();
     } catch (e) {
       console.error(e);
-      new Notice('密码错误，解密失败');
+      new Notice(t('通知.密码错误解密失败'));
       this.showDecryptForm(payload);
     }
   }
@@ -149,7 +150,7 @@ export class CryptorModal extends SecretModal {
     const { password } = data;
 
     if (!password) {
-      new Notice('请输入密码');
+      new Notice(t('通知.请输入密码'));
       return;
     }
 
@@ -163,20 +164,20 @@ export class CryptorModal extends SecretModal {
       this.open();
     } catch (e) {
       console.error(e);
-      new Notice('密码错误，解密失败');
+      new Notice(t('通知.密码错误解密失败'));
       this.showPasswordForm(payload);
     }
   }
 
   openChangePassword(payload: NormalizedSecretPayload): Promise<NormalizedSecretPayload | null> {
     this.prepare();
-    this.titleEl.setText('验证旧密码');
+    this.titleEl.setText(t('模态框.标题.验证旧密码'));
 
     this.createForm<FormChangePassword>(
       [
         {
           name: 'currentPassword',
-          label: '当前密码',
+          label: t('模态框.字段.当前密码'),
           type: 'password',
           required: true,
           focus: true,
@@ -184,18 +185,18 @@ export class CryptorModal extends SecretModal {
         },
         {
           name: 'newPassword',
-          label: '新密码',
+          label: t('模态框.字段.新密码'),
           type: 'password',
           required: true,
         },
         {
           name: 'newPasswordConfirm',
-          label: '确认密码',
+          label: t('模态框.字段.确认密码'),
           type: 'password',
           required: true,
         },
-        { name: 'title', label: '标题', value: payload.title },
-        { name: 'hint', label: '提示', value: payload.hint },
+        { name: 'title', label: t('模态框.字段.标题'), value: payload.title },
+        { name: 'hint', label: t('模态框.字段.提示'), value: payload.hint },
       ],
       (data) => this.submitChangePassword(payload, data),
     );
@@ -208,17 +209,17 @@ export class CryptorModal extends SecretModal {
     const { currentPassword, newPassword, newPasswordConfirm, title, hint } = data;
 
     if (!currentPassword) {
-      new Notice('请输入当前密码');
+      new Notice(t('通知.请输入当前密码'));
       return;
     }
 
     if (!newPassword) {
-      new Notice('请输入新密码');
+      new Notice(t('通知.请输入新密码'));
       return;
     }
 
     if (newPassword !== newPasswordConfirm) {
-      new Notice('两次输入的密码不一致');
+      new Notice(t('通知.两次输入的密码不一致'));
       return;
     }
 
@@ -232,7 +233,7 @@ export class CryptorModal extends SecretModal {
       }); // this will close the modal
     } catch (error) {
       console.error(error);
-      new Notice('当前密码错误');
+      new Notice(t('通知.当前密码错误'));
     }
   }
 }

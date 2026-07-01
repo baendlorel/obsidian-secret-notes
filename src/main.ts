@@ -10,6 +10,7 @@ import { parseSecretPayload } from './crypto.js';
 import { SECRET_LANG } from './consts.js';
 import { CryptorModal } from './components/cryptor.js';
 import { renderEncryptedBlock, renderPlainBlock, serializeSecretFence } from './components/secret-blocks.js';
+import { t } from './i18n/index.js';
 
 export default class SecretNotesPlugin extends Plugin {
   async onload(): Promise<void> {
@@ -68,13 +69,13 @@ export default class SecretNotesPlugin extends Plugin {
   ): Promise<void> {
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) {
-      new Notice('无法定位当前 secret 代码块');
+      new Notice(t('通知.无法定位当前Secret代码块'));
       return;
     }
 
     const file = this.app.vault.getFileByPath(ctx.sourcePath);
     if (!file) {
-      new Notice('无法找到当前文件');
+      new Notice(t('通知.无法找到当前文件'));
       return;
     }
 

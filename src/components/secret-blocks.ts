@@ -1,5 +1,6 @@
 import type { SecretBlock, SecretPayload } from '../types.js';
 import { isFooter, isHeader } from '../consts.js';
+import { t } from '../i18n/index.js';
 
 export function findSecretBlocks(content: string): SecretBlock[] {
   const lines = content.split('\n');
@@ -49,9 +50,9 @@ export function renderPlainBlock(el: HTMLElement, onEncrypt: () => void | Promis
 
   const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
 
-  card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: '未加密' });
+  card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: t('卡片.状态.未加密') });
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions.createEl('button', { cls: 'mod-cta', text: '加密' }).addEventListener('click', onEncrypt);
+  actions.createEl('button', { cls: 'mod-cta', text: t('卡片.按钮.加密') }).addEventListener('click', onEncrypt);
 }
 
 export function renderEncryptedBlock(
@@ -67,16 +68,16 @@ export function renderEncryptedBlock(
   el.addClass('secret-notes-panel');
 
   const card = el.createDiv({ cls: 'secret-notes-card' });
-  card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--success', text: '已加密' });
+  card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--success', text: t('卡片.状态.已加密') });
 
   if (payload.title) {
     card.createDiv({ cls: 'secret-notes-card__title', text: payload.title });
   }
 
-  card.createDiv({ cls: 'secret-notes-card__meta', text: `加密时间：${payload.date}` });
+  card.createDiv({ cls: 'secret-notes-card__meta', text: t('卡片.信息.加密时间', payload.date) });
 
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions.createEl('button', { text: '更换密码' }).addEventListener('click', handlers.onChangePassword);
-  actions.createEl('button', { text: '永久解密' }).addEventListener('click', handlers.onDecrypt);
-  actions.createEl('button', { cls: 'mod-cta', text: '编辑' }).addEventListener('click', handlers.onView);
+  actions.createEl('button', { text: t('卡片.按钮.更换密码') }).addEventListener('click', handlers.onChangePassword);
+  actions.createEl('button', { text: t('卡片.按钮.永久解密') }).addEventListener('click', handlers.onDecrypt);
+  actions.createEl('button', { cls: 'mod-cta', text: t('卡片.按钮.编辑') }).addEventListener('click', handlers.onView);
 }

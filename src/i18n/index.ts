@@ -1,7 +1,9 @@
 import { getLanguage } from 'obsidian';
 import { zh, en } from './dict.js';
 
-const langs: Record<string, typeof zh> = {
+type TranslationKey = keyof typeof zh;
+
+const langs: Record<string, Record<TranslationKey, string>> = {
   // 明确支持中文的语言
   zh: zh, // 简体中文
   'zh-TW': zh, // 繁体中文
@@ -83,7 +85,7 @@ const langs: Record<string, typeof zh> = {
   vi: en, // 越南语（使用拉丁字母）
 };
 
-export const t = (key: keyof typeof zh, ...args: unknown[]): string => {
+export const t = (key: TranslationKey, ...args: unknown[]): string => {
   const d = langs[getLanguage()] ?? zh;
   let text = (d[key] ?? key) as string;
   for (let i = 0; i < args.length; i++) {
