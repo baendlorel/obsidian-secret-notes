@@ -1,14 +1,16 @@
 import { SECRET_VERSION } from './consts.js';
-import type { SecretMeta, SecretPayload } from './types.js';
+import type { EncryptArgs, NormalizedSecretPayload, SecretPayload } from './types.js';
 import { toArrayBuffer, bytesToBase64, dtm, base64ToBytes } from './utils.js';
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-export async function encryptSecret(plainText: string, password: string, meta: SecretMeta): Promise<SecretPayload> {
+export async function encryptSecret(args: EncryptArgs): Promise<NormalizedSecretPayload> {
+  const { plaintext, password, title, hint } = args;
+
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const key = await deriveKey(password);
-  const encoded = textEncoder.encode(plainText);
+  const encoded = textEncoder.encode(plaintext);
   const encryptedBuffer = await crypto.subtle.encrypt(
     {
       name: 'AES-GCM',
@@ -23,7 +25,8 @@ export async function encryptSecret(plainText: string, password: string, meta: S
 
   return {
     v: SECRET_VERSION,
-    ...meta,
+    title,
+    hint,
     encrypted: `${bytesToBase64(iv)}:${bytesToBase64(tag)}:${bytesToBase64(cipherBytes)}`,
     date: dtm(new Date()),
   };
@@ -61,15 +64,27 @@ async function deriveKey(password: string): Promise<CryptoKey> {
   return crypto.subtle.importKey('raw', hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
 }
 
-export function isEncrypted(block: string): SecretPayload | null {
-  let o: SecretPayload | null = null;
+export function parseSecretPayload(source: string): NormalizedSecretPayload | null {
   try {
-    o = JSON.parse(block);
-  } catch {}
+    const { encrypted, v, date, title, hint } = JSON.parse(source) as SecretPayload;
+    if (
+      v !== SECRET_VERSION ||
+      typeof encrypted !== 'string' ||
+      typeof date !== 'string' ||
+      (title !== undefined && typeof title !== 'string') ||
+      (hint !== undefined && typeof hint !== 'string')
+    ) {
+      return null;
+    }
 
-  if (!o || !o.encrypted || !o.v || !o.date) {
+    return {
+      v,
+      title: title?.trim() ?? '',
+      hint: hint?.trim() ?? '',
+      encrypted,
+      date,
+    };
+  } catch {
     return null;
   }
-
-  return o;
 }

@@ -6,6 +6,8 @@ export interface SecretPayload {
   date: string;
 }
 
+export type NormalizedSecretPayload = Required<SecretPayload>;
+
 export interface SecretBlock {
   from: number;
   to: number;
@@ -15,26 +17,9 @@ export interface SecretBlock {
   content: string;
 }
 
-export interface SecretMeta {
-  title?: string;
-  hint?: string;
-}
-
-export interface SessionState {
-  password?: string;
-  lastPlaintext?: string;
-  failureCount: number;
-  blockedUntil: number;
-}
-
-export interface SecretFormResult {
-  password: string;
-  title?: string;
-  hint?: string;
-}
-
-export interface SecretEditorResult {
+export interface EncryptArgs {
   plaintext: string;
+  password: string;
   title: string;
   hint: string;
 }

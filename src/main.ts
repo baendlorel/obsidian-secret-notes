@@ -6,7 +6,7 @@ import {
   type MarkdownSectionInformation,
   type TFile,
 } from 'obsidian';
-import { isEncrypted } from './crypto.js';
+import { parseSecretPayload } from './crypto.js';
 import { SECRET_LANG } from './consts.js';
 import { CryptorModal } from './components/cryptor.js';
 import { renderEncryptedBlock, renderPlainBlock, serializeSecretFence } from './components/secret-blocks.js';
@@ -14,7 +14,7 @@ import { renderEncryptedBlock, renderPlainBlock, serializeSecretFence } from './
 export default class SecretNotesPlugin extends Plugin {
   async onload(): Promise<void> {
     this.registerMarkdownCodeBlockProcessor(SECRET_LANG, (source, el, ctx) => {
-      const payload = isEncrypted(source);
+      const payload = parseSecretPayload(source);
 
       if (payload) {
         renderEncryptedBlock(el, payload, {

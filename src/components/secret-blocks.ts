@@ -1,5 +1,5 @@
-import { isFooter, isHeader, SECRET_VERSION } from '../consts.js';
 import type { SecretBlock, SecretPayload } from '../types.js';
+import { isFooter, isHeader } from '../consts.js';
 
 export function findSecretBlocks(content: string): SecretBlock[] {
   const lines = content.split('\n');
@@ -38,31 +38,6 @@ export function findSecretBlocks(content: string): SecretBlock[] {
   }
 
   return blocks;
-}
-
-export function parseSecretPayload(source: string): SecretPayload | null {
-  try {
-    const parsed = JSON.parse(source) as Partial<SecretPayload>;
-    if (
-      parsed.v !== SECRET_VERSION ||
-      typeof parsed.encrypted !== 'string' ||
-      typeof parsed.date !== 'string' ||
-      (parsed.title !== undefined && typeof parsed.title !== 'string') ||
-      (parsed.hint !== undefined && typeof parsed.hint !== 'string')
-    ) {
-      return null;
-    }
-
-    return {
-      v: parsed.v,
-      title: parsed.title?.trim() || undefined,
-      hint: parsed.hint?.trim() || undefined,
-      encrypted: parsed.encrypted,
-      date: parsed.date,
-    };
-  } catch {
-    return null;
-  }
 }
 
 export function serializeSecretFence(payload: SecretPayload): string {
@@ -104,6 +79,6 @@ export function renderEncryptedBlock(
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
   actions.createEl('button', { text: '更换密码' }).addEventListener('click', handlers.onChangePassword);
   // TODO 增加永久解密的机制
-  actions.createEl('button', { cls: 'mod-muted', text: '永久解密' }).addEventListener('click');
+  actions.createEl('button', { cls: 'mod-muted', text: '永久解密' }).addEventListener('click', () => 1);
   actions.createEl('button', { cls: 'mod-cta', text: '编辑' }).addEventListener('click', handlers.onView);
 }

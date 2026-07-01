@@ -1,6 +1,12 @@
 import { type App, Notice } from 'obsidian';
 import { decryptSecret } from '../crypto.js';
-import type { FormChangePassword, FormEdit, FormEncrypt, FormPasswordInput, SecretPayload } from '../types.js';
+import type {
+  FormChangePassword,
+  FormEdit,
+  FormEncrypt,
+  FormPasswordInput,
+  NormalizedSecretPayload,
+} from '../types.js';
 import { SecretModal } from './modal.js';
 
 export class CryptorModal extends SecretModal {
@@ -8,7 +14,7 @@ export class CryptorModal extends SecretModal {
     super(app);
   }
 
-  private showPasswordForm(payload: SecretPayload): void {
+  private showPasswordForm(payload: NormalizedSecretPayload): void {
     this.titleEl.setText('输入密码');
     this.createForm<FormPasswordInput>(
       [
@@ -25,7 +31,7 @@ export class CryptorModal extends SecretModal {
     );
   }
 
-  private showEditForm(payload: SecretPayload, plaintext: string, password: string): void {
+  private showEditForm(payload: NormalizedSecretPayload, plaintext: string, password: string): void {
     this.modalEl.addClass('secret-notes-modal--decrypted');
     this.titleEl.setText('编辑明文');
     this.createForm<FormEdit>(
@@ -57,7 +63,7 @@ export class CryptorModal extends SecretModal {
     );
   }
 
-  openEncrypt(plaintext = ''): Promise<SecretPayload | null> {
+  openEncrypt(plaintext = ''): Promise<NormalizedSecretPayload | null> {
     this.prepare();
     this.titleEl.setText('加密');
 
@@ -86,7 +92,7 @@ export class CryptorModal extends SecretModal {
     return this.waitForResult();
   }
 
-  openEdit(payload: SecretPayload): Promise<SecretPayload | null> {
+  openEdit(payload: NormalizedSecretPayload): Promise<NormalizedSecretPayload | null> {
     this.prepare();
     this.showPasswordForm(payload);
 
@@ -94,7 +100,7 @@ export class CryptorModal extends SecretModal {
     return this.waitForResult();
   }
 
-  private async submitEdit(payload: SecretPayload, data: FormPasswordInput): Promise<void> {
+  private async submitEdit(payload: NormalizedSecretPayload, data: FormPasswordInput): Promise<void> {
     const { password } = data;
 
     if (!password) {
@@ -117,7 +123,7 @@ export class CryptorModal extends SecretModal {
     }
   }
 
-  openChangePassword(payload: SecretPayload): Promise<SecretPayload | null> {
+  openChangePassword(payload: NormalizedSecretPayload): Promise<NormalizedSecretPayload | null> {
     this.prepare();
     this.titleEl.setText('验证旧密码');
 
@@ -153,7 +159,7 @@ export class CryptorModal extends SecretModal {
     return this.waitForResult();
   }
 
-  private async submitChangePassword(payload: SecretPayload, data: FormChangePassword): Promise<void> {
+  private async submitChangePassword(payload: NormalizedSecretPayload, data: FormChangePassword): Promise<void> {
     const { currentPassword, newPassword, newPasswordConfirm, title, hint } = data;
 
     if (!currentPassword) {

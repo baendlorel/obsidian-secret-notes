@@ -1,9 +1,9 @@
 import { type App, Modal, Notice } from 'obsidian';
-import type { FormEncrypt, SecretPayload, InputElementOptions } from '../types.js';
+import type { FormEncrypt, NormalizedSecretPayload, InputElementOptions } from '../types.js';
 import { encryptSecret } from '../crypto.js';
 
 export abstract class SecretModal extends Modal {
-  protected resolver?: (value: SecretPayload | null) => void;
+  protected resolver?: (value: NormalizedSecretPayload | null) => void;
   protected settled: boolean = false;
   protected handoffInProgress: boolean = false;
 
@@ -11,8 +11,8 @@ export abstract class SecretModal extends Modal {
     super(app);
   }
 
-  protected waitForResult(): Promise<SecretPayload | null> {
-    return new Promise<SecretPayload | null>((resolve) => (this.resolver = resolve));
+  protected waitForResult(): Promise<NormalizedSecretPayload | null> {
+    return new Promise<NormalizedSecretPayload | null>((resolve) => (this.resolver = resolve));
   }
 
   protected prepare(): void {
@@ -21,7 +21,7 @@ export abstract class SecretModal extends Modal {
     this.resolver = undefined;
   }
 
-  protected finish(result: SecretPayload | null): void {
+  protected finish(result: NormalizedSecretPayload | null): void {
     if (this.settled) {
       return;
     }
@@ -99,20 +99,20 @@ export abstract class SecretModal extends Modal {
   }
 
   protected async encrypt(plaintext: string, data: FormEncrypt): Promise<void> {
-    const { title, hint, password, passwordConfirm: confirm } = data;
+    const { title, hint, password, passwordConfirm } = data;
 
     if (!password) {
       new Notice('请输入密码');
       return;
     }
 
-    if (password !== confirm) {
+    if (password !== passwordConfirm) {
       new Notice('两次输入的密码不一致');
       return;
     }
 
     try {
-      const encrypted = await encryptSecret(plaintext, password, { title, hint });
+      const encrypted = await encryptSecret({ plaintext, password, title, hint });
       this.handoffInProgress = true; // prevents onClose calling finish(null)
       this.finish(encrypted);
       this.close();
