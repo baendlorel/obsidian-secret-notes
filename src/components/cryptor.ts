@@ -171,14 +171,12 @@ export class CryptorModal extends SecretModal {
 
     try {
       const plaintext = await decryptSecret(payload, currentPassword);
-      this.handoffInProgress = true;
       await this.encrypt(plaintext, {
         password: newPassword,
         passwordConfirm: newPasswordConfirm,
         title,
         hint,
-      });
-      this.close();
+      }); // this will close the modal
     } catch (error) {
       console.error(error);
       new Notice('当前密码错误');
