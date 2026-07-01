@@ -1,11 +1,7 @@
 import { type Modal } from 'obsidian';
 import { InputElementOptions } from '../types.js';
 
-export function createForm(
-  modal: Modal,
-  inputs: InputElementOptions[],
-  onYes: (form: HTMLFormElement) => Promise<void>,
-) {
+export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: (data: unknown) => Promise<void>) {
   modal.contentEl.empty();
   const form = modal.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
 
@@ -44,11 +40,17 @@ export function createForm(
   yesBtn.addEventListener('click', () => {
     noBtn.disabled = true;
     yesBtn.disabled = true;
-    onYes(form).finally(() => {
+    onYes(createData(form)).finally(() => {
       noBtn.disabled = false;
       yesBtn.disabled = false;
     });
   });
 
   return form;
+}
+
+export function createData(form: HTMLFormElement): unknown {
+  const data: Record<string, string> = {};
+  new FormData(form).forEach((value, key) => (data[key] = String(value ?? '').trim()));
+  return data as unknown;
 }

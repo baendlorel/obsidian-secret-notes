@@ -1,6 +1,6 @@
 import { type App, Modal, Notice } from 'obsidian';
 import { decryptSecret, encryptSecret } from '../crypto.js';
-import type { InputElementOptions, SecretEditorResult, SecretFormResult, SecretPayload } from '../types.js';
+import type { FormChangePassword, FormEncrypt, FormEdit, SecretEditorResult, SecretPayload } from '../types.js';
 import { createForm } from './form.js';
 
 export class CryptorModal extends Modal {
@@ -12,6 +12,7 @@ export class CryptorModal extends Modal {
     super(app);
   }
 
+  // #region Services
   openEncrypt(plaintext = ''): Promise<SecretPayload | null> {
     this.preparePromise();
     this.titleEl.setText('加密');
@@ -27,7 +28,7 @@ export class CryptorModal extends Modal {
           focus: true,
         },
         {
-          name: 'confirm',
+          name: 'passwordConfirm',
           label: '确认密码',
           type: 'password',
           required: true,
@@ -35,20 +36,15 @@ export class CryptorModal extends Modal {
         { name: 'title', label: '标题' },
         { name: 'hint', label: '密码提示' },
       ],
-      (form) => this.submitEncrypt(plaintext, form),
+      (data) => this.submitEncrypt(plaintext, data as FormEncrypt),
     );
 
     this.open();
     return this.waitForResult();
   }
 
-  private async submitEncrypt(plaintext: string, form: HTMLFormElement): Promise<void> {
-    const data = new FormData(form);
-
-    const title = String(data.get('title') ?? '').trim();
-    const hint = String(data.get('hint') ?? '').trim();
-    const password = String(data.get('password')).trim();
-    const confirm = String(data.get('confirm')).trim();
+  private async submitEncrypt(plaintext: string, data: FormEncrypt): Promise<void> {
+    const { title, hint, password, passwordConfirm: confirm } = data;
 
     if (!password) {
       new Notice('请输入密码');
@@ -85,16 +81,15 @@ export class CryptorModal extends Modal {
           placeholder: payload.hint,
         },
       ],
-      (form) => this.submitEdit(payload, form),
+      (data) => this.submitEdit(payload, data as FormEdit),
     );
 
     this.open();
     return this.waitForResult();
   }
 
-  private async submitEdit(payload: SecretPayload, form: HTMLFormElement): Promise<void> {
-    const data = new FormData(form);
-    const password = String(data.get('password') ?? '').trim();
+  private async submitEdit(payload: SecretPayload, data: FormEdit): Promise<void> {
+    const { password } = data;
 
     if (!password) {
       new Notice('请输入密码');
@@ -105,7 +100,7 @@ export class CryptorModal extends Modal {
       const plaintext = await decryptSecret(payload, password);
       this.handoffInProgress = true;
       this.close();
-      const result = await this.openDecrypted(payload, password, plaintext);
+      const result = await new DecryptedModal(this.app, payload, password, plaintext).openEditor();
       this.finish(result);
     } catch (e) {
       console.error(e);
@@ -117,7 +112,6 @@ export class CryptorModal extends Modal {
     this.preparePromise();
     this.titleEl.setText('验证旧密码');
 
-    // TODO 难道不能用new FormData form元素吗？一定要逐个处理吗
     createForm(
       this,
       [
@@ -144,21 +138,15 @@ export class CryptorModal extends Modal {
         { name: 'title', label: '标题', value: payload.title },
         { name: 'hint', label: '提示', value: payload.hint },
       ],
-      (form) => this.submitChangePassword(payload, form),
+      (data) => this.submitChangePassword(payload, data as FormChangePassword),
     );
 
     this.open();
     return this.waitForResult();
   }
 
-  // TODO 把所有的入参form都换成直接是对象
-  private async submitChangePassword(payload: SecretPayload, form: HTMLFormElement): Promise<void> {
-    const data = new FormData(form);
-    const currentPassword = String(data.get('currentPassword') ?? '').trim();
-    const newPassword = String(data.get('newPassword') ?? '').trim();
-    const newPasswordConfirm = String(data.get('newPasswordConfirm') ?? '').trim();
-    const title = String(data.get('title') ?? '').trim();
-    const hint = String(data.get('hint') ?? '').trim();
+  private async submitChangePassword(payload: SecretPayload, data: FormChangePassword): Promise<void> {
+    const { currentPassword, newPassword, newPasswordConfirm, title, hint } = data;
 
     if (!currentPassword) {
       new Notice('请输入当前密码');
@@ -178,22 +166,21 @@ export class CryptorModal extends Modal {
     try {
       const plaintext = await decryptSecret(payload, currentPassword);
       this.handoffInProgress = true;
+      await this.submitEncrypt(plaintext, {
+        password: newPassword,
+        passwordConfirm: newPasswordConfirm,
+        title,
+        hint,
+      });
       this.close();
-      const result = await this.submitEncrypt(plaintext, form);
     } catch (error) {
       console.error(error);
       new Notice('当前密码错误');
     }
   }
+  // #endregion
 
-  private async openDecrypted(
-    payload: SecretPayload,
-    password: string,
-    plaintext: string,
-  ): Promise<SecretPayload | null> {
-    return new DecryptedModal(this.app, payload, password, plaintext).openEditor();
-  }
-
+  // #region Controllers
   override onClose(): void {
     this.titleEl.empty();
     this.contentEl.empty();
@@ -224,6 +211,7 @@ export class CryptorModal extends Modal {
     this.resolver?.(result);
     this.resolver = undefined;
   }
+  // #endregion
 }
 
 export class DecryptedModal extends Modal {

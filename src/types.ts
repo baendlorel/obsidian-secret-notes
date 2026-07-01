@@ -48,3 +48,23 @@ export interface InputElementOptions {
   focus?: boolean;
   placeholder?: string;
 }
+
+// # Forms
+export interface FormEncrypt {
+  title: string;
+  hint: string;
+  password: string;
+  passwordConfirm: string;
+}
+
+export interface FormEdit {
+  password: string;
+}
+
+export interface FormChangePassword {
+  currentPassword: string;
+  newPassword: string;
+  newPasswordConfirm: string;
+  title: string;
+  hint: string;
+}
