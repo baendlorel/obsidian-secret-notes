@@ -8,6 +8,55 @@ export class CryptorModal extends SecretModal {
     super(app);
   }
 
+  private showPasswordForm(payload: SecretPayload): void {
+    this.titleEl.setText('输入密码');
+    this.createForm<FormPasswordInput>(
+      [
+        {
+          name: 'password',
+          label: '密码',
+          type: 'password',
+          required: true,
+          focus: true,
+          placeholder: payload.hint,
+        },
+      ],
+      (data) => this.submitEdit(payload, data),
+    );
+  }
+
+  private showEditForm(payload: SecretPayload, plaintext: string, password: string): void {
+    this.modalEl.addClass('secret-notes-modal--decrypted');
+    this.titleEl.setText('编辑明文');
+    this.createForm<FormEdit>(
+      [
+        {
+          name: 'title',
+          label: '标题',
+          value: payload.title,
+        },
+        {
+          name: 'hint',
+          label: '密码提示',
+          value: payload.hint,
+        },
+        {
+          name: 'plaintext',
+          label: '明文内容',
+          value: plaintext,
+          type: 'textarea',
+        },
+      ],
+      (data) =>
+        this.encrypt(data.plaintext, {
+          title: data.title,
+          hint: data.hint,
+          password: password,
+          passwordConfirm: password,
+        }),
+    );
+  }
+
   openEncrypt(plaintext = ''): Promise<SecretPayload | null> {
     this.prepare();
     this.titleEl.setText('加密');
@@ -39,20 +88,7 @@ export class CryptorModal extends SecretModal {
 
   openEdit(payload: SecretPayload): Promise<SecretPayload | null> {
     this.prepare();
-    this.titleEl.setText('输入密码');
-    this.createForm<FormPasswordInput>(
-      [
-        {
-          name: 'password',
-          label: '密码',
-          type: 'password',
-          required: true,
-          focus: true,
-          placeholder: payload.hint,
-        },
-      ],
-      (data) => this.submitEdit(payload, data),
-    );
+    this.showPasswordForm(payload);
 
     this.open();
     return this.waitForResult();
@@ -66,47 +102,16 @@ export class CryptorModal extends SecretModal {
       return;
     }
 
-    this.handoffInProgress = true;
-    this.close();
-
-    this.modalEl.addClass('secret-notes-modal--decrypted');
-    this.titleEl.setText('编辑明文');
-
     try {
       const plaintext = await decryptSecret(payload, password);
-      this.createForm<FormEdit>(
-        [
-          {
-            name: 'title',
-            label: '标题',
-            value: payload.title,
-          },
-          {
-            name: 'hint',
-            label: '密码提示',
-            value: payload.hint,
-          },
-          {
-            name: 'plaintext',
-            label: '明文内容',
-            value: plaintext,
-            type: 'textarea',
-          },
-        ],
-        (data) =>
-          this.encrypt(data.plaintext, {
-            title: data.title,
-            hint: data.hint,
-            password: password,
-            passwordConfirm: password,
-          }),
-      );
-
+      this.handoffInProgress = true;
+      this.close();
+      this.showEditForm(payload, plaintext, password);
       this.open();
-      await this.waitForResult();
     } catch (e) {
       console.error(e);
       new Notice('密码错误，解密失败');
+      this.showPasswordForm(payload);
     }
   }
 
