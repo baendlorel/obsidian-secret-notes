@@ -38,3 +38,12 @@ export interface SecretEditorResult {
   title: string;
   hint: string;
 }
+
+export interface InputElementOptions {
+  form: HTMLFormElement;
+  label: string;
+  name: string;
+  type: 'text' | 'password';
+  value?: string;
+  required?: boolean;
+}

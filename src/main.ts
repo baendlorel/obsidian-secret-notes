@@ -8,8 +8,12 @@ import {
 } from 'obsidian';
 import { isEncrypted } from './crypto.js';
 import { SECRET_LANG } from './constants.js';
-import { CryptorModal } from './modals.js';
-import { renderEncryptedPlaceholder, renderPlainPlaceholder, serializeSecretFence } from './secret-blocks.js';
+import { CryptorModal } from './components/modals.js';
+import {
+  renderEncryptedPlaceholder,
+  renderPlainPlaceholder,
+  serializeSecretFence,
+} from './components/secret-blocks.js';
 
 export default class SecretNotesPlugin extends Plugin {
   async onload(): Promise<void> {

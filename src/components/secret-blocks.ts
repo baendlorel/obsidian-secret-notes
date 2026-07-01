@@ -1,5 +1,5 @@
-import { isFooter, isHeader, SECRET_VERSION } from './constants.js';
-import type { SecretBlock, SecretPayload } from './types.js';
+import { isFooter, isHeader, SECRET_VERSION } from '../constants.js';
+import type { SecretBlock, SecretPayload } from '../types.js';
 
 export function findSecretBlocks(content: string): SecretBlock[] {
   const lines = content.split('\n');
