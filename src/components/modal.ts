@@ -112,6 +112,7 @@ export abstract class SecretModal extends Modal {
 
     try {
       const encrypted = await encryptSecret(plaintext, password, { title, hint });
+      this.handoffInProgress = true; // prevents onClose calling finish(null)
       this.finish(encrypted);
       this.close();
     } catch (error) {

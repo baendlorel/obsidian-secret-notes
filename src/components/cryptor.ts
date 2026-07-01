@@ -104,8 +104,10 @@ export class CryptorModal extends SecretModal {
 
     try {
       const plaintext = await decryptSecret(payload, password);
+      // Set the flag to prevent finish(null)
       this.handoffInProgress = true;
       this.close();
+      // Show edit form immediately
       this.showEditForm(payload, plaintext, password);
       this.open();
     } catch (e) {
