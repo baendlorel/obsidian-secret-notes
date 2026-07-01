@@ -15,7 +15,6 @@ export class CryptorModal extends Modal {
   openEncrypt(plaintext = ''): Promise<SecretPayload | null> {
     this.preparePromise();
     this.titleEl.setText('加密');
-    this.contentEl.empty();
 
     createForm(
       this,
@@ -36,11 +35,42 @@ export class CryptorModal extends Modal {
         { name: 'title', label: '标题' },
         { name: 'hint', label: '密码提示' },
       ],
-      (form) => this.handleEncryptSubmit(plaintext, form),
+      (form) => this.handleEncrypt(plaintext, form),
     );
 
     this.open();
     return this.waitForResult();
+  }
+
+  private async handleEncrypt(plaintext: string, form: HTMLFormElement): Promise<void> {
+    const data = new FormData(form);
+
+    const title = String(data.get('title') ?? '').trim();
+    const hint = String(data.get('hint') ?? '').trim();
+    const password = String(data.get('password')).trim();
+    const confirm = String(data.get('confirm')).trim();
+
+    if (!password) {
+      new Notice('请输入密码');
+      return;
+    }
+
+    if (password !== confirm) {
+      new Notice('两次输入的密码不一致');
+      return;
+    }
+
+    // TODO confirmButton.disabled = true;
+
+    try {
+      const encrypted = await encryptSecret(plaintext, password, { title, hint });
+      this.finish(encrypted);
+      this.close();
+    } catch (error) {
+      console.error(error);
+      new Notice('加密失败，请稍后重试');
+      // TODO confirmButton.disabled = false;
+    }
   }
 
   openPasswordInput(payload: SecretPayload): Promise<SecretPayload | null> {
@@ -144,37 +174,6 @@ export class CryptorModal extends Modal {
     this.settled = true;
     this.resolver?.(result);
     this.resolver = undefined;
-  }
-
-  private async handleEncryptSubmit(plaintext: string, form: HTMLFormElement): Promise<void> {
-    const data = new FormData(form);
-
-    const title = String(data.get('title') ?? '').trim();
-    const hint = String(data.get('hint') ?? '').trim();
-    const password = String(data.get('password')).trim();
-    const confirm = String(data.get('confirm')).trim();
-
-    if (!password) {
-      new Notice('请输入密码');
-      return;
-    }
-
-    if (password !== confirm) {
-      new Notice('两次输入的密码不一致');
-      return;
-    }
-
-    // TODO confirmButton.disabled = true;
-
-    try {
-      const encrypted = await encryptSecret(plaintext, password, { title, hint });
-      this.finish(encrypted);
-      this.close();
-    } catch (error) {
-      console.error(error);
-      new Notice('加密失败，请稍后重试');
-      // TODO confirmButton.disabled = false;
-    }
   }
 
   private async handleDecryptSubmit(args: {

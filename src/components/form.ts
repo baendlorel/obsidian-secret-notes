@@ -1,7 +1,12 @@
 import { type Modal } from 'obsidian';
 import { InputElementOptions } from '../types.js';
 
-export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: (form: HTMLFormElement) => void) {
+export function createForm(
+  modal: Modal,
+  inputs: InputElementOptions[],
+  onYes: (form: HTMLFormElement) => Promise<void>,
+) {
+  modal.contentEl.empty();
   const form = modal.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
 
   // # input elements
@@ -29,10 +34,17 @@ export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: (
 
   // # footer
   const footer = modal.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
-  footer.createEl('button', { text: '取消', type: 'button' }).addEventListener('click', () => modal.close());
-  footer
-    .createEl('button', { text: '确认', cls: 'mod-cta secret-notes-button', type: 'button' })
-    .addEventListener('click', () => onYes(form));
+  const noBtn = footer.createEl('button', { text: '取消', type: 'button' });
+  noBtn.addEventListener('click', () => modal.close());
+  const yesBtn = footer.createEl('button', { text: '确认', cls: 'mod-cta secret-notes-button', type: 'button' });
+  yesBtn.addEventListener('click', () => {
+    noBtn.disabled = true;
+    yesBtn.disabled = true;
+    onYes(form).finally(() => {
+      noBtn.disabled = false;
+      yesBtn.disabled = false;
+    });
+  });
 
   return form;
 }
