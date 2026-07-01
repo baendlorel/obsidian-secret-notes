@@ -1,8 +1,7 @@
 import { type App, Notice } from 'obsidian';
-import { decryptSecret, encryptSecret } from '../crypto.js';
-import type { FormChangePassword, FormEncrypt, FormPasswordInput, SecretPayload } from '../types.js';
+import { decryptSecret } from '../crypto.js';
+import type { FormChangePassword, FormEdit, FormEncrypt, FormPasswordInput, SecretPayload } from '../types.js';
 import { SecretModal } from './modal.js';
-import { EditModal } from './edit.js';
 
 export class CryptorModal extends SecretModal {
   constructor(app: App) {
@@ -67,12 +66,44 @@ export class CryptorModal extends SecretModal {
       return;
     }
 
+    this.handoffInProgress = true;
+    this.close();
+
+    this.modalEl.addClass('secret-notes-modal--decrypted');
+    this.titleEl.setText('编辑明文');
+
     try {
       const plaintext = await decryptSecret(payload, password);
-      this.handoffInProgress = true;
-      this.close();
-      const result = await new EditModal(this.app, payload, password, plaintext).openEditor();
-      this.finish(result);
+      this.createForm<FormEdit>(
+        [
+          {
+            name: 'title',
+            label: '标题',
+            value: payload.title,
+          },
+          {
+            name: 'hint',
+            label: '密码提示',
+            value: payload.hint,
+          },
+          {
+            name: 'plaintext',
+            label: '明文内容',
+            value: plaintext,
+            type: 'textarea',
+          },
+        ],
+        (data) =>
+          this.encrypt(data.plaintext, {
+            title: data.title,
+            hint: data.hint,
+            password: password,
+            passwordConfirm: password,
+          }),
+      );
+
+      this.open();
+      await this.waitForResult();
     } catch (e) {
       console.error(e);
       new Notice('密码错误，解密失败');

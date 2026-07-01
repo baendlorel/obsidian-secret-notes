@@ -8,7 +8,6 @@ import {
 } from 'obsidian';
 import { isEncrypted } from './crypto.js';
 import { SECRET_LANG } from './constants.js';
-import { EditModal } from './components/edit.js';
 import {
   renderEncryptedPlaceholder,
   renderPlainPlaceholder,
