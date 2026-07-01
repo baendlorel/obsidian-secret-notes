@@ -7,21 +7,36 @@ import {
   type TFile,
 } from 'obsidian';
 import { isEncrypted } from './crypto.js';
-import { SECRET_LANG } from './constants.js';
+import { SECRET_LANG } from './consts.js';
 import { CryptorModal } from './components/cryptor.js';
-import {
-  renderEncryptedPlaceholder,
-  renderPlainPlaceholder,
-  serializeSecretFence,
-} from './components/secret-blocks.js';
+import { renderEncryptedBlock, renderPlainBlock, serializeSecretFence } from './components/secret-blocks.js';
 
 export default class SecretNotesPlugin extends Plugin {
   async onload(): Promise<void> {
     this.registerMarkdownCodeBlockProcessor(SECRET_LANG, (source, el, ctx) => {
       const payload = isEncrypted(source);
 
-      if (!payload) {
-        renderPlainPlaceholder(el, async () => {
+      if (payload) {
+        renderEncryptedBlock(el, payload, {
+          onView: async () => {
+            const result = await new CryptorModal(this.app).openEdit(payload);
+            if (!result) {
+              return;
+            }
+
+            await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
+          },
+          onChangePassword: async () => {
+            const result = await new CryptorModal(this.app).openChangePassword(payload);
+            if (!result) {
+              return;
+            }
+
+            await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
+          },
+        });
+      } else {
+        renderPlainBlock(el, async () => {
           const result = await new CryptorModal(this.app).openEncrypt(source);
           if (!result) {
             return;
@@ -29,27 +44,7 @@ export default class SecretNotesPlugin extends Plugin {
 
           await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
         });
-        return;
       }
-
-      renderEncryptedPlaceholder(el, payload, {
-        onView: async () => {
-          const result = await new CryptorModal(this.app).openEdit(payload);
-          if (!result) {
-            return;
-          }
-
-          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
-        },
-        onChangePassword: async () => {
-          const result = await new CryptorModal(this.app).openChangePassword(payload);
-          if (!result) {
-            return;
-          }
-
-          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
-        },
-      });
     });
   }
 

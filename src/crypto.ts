@@ -1,4 +1,4 @@
-import { SECRET_VERSION } from './constants.js';
+import { SECRET_VERSION } from './consts.js';
 import type { SecretMeta, SecretPayload } from './types.js';
 import { toArrayBuffer, bytesToBase64, dtm, base64ToBytes } from './utils.js';
 
