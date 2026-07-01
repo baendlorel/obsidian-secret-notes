@@ -23,8 +23,7 @@ export async function encryptSecret(plainText: string, password: string, meta: S
 
   return {
     v: SECRET_VERSION,
-    title: meta.title?.trim() || undefined,
-    hint: meta.hint?.trim() || undefined,
+    ...meta,
     encrypted: `${bytesToBase64(iv)}:${bytesToBase64(tag)}:${bytesToBase64(cipherBytes)}`,
     date: dtm(new Date()),
   };

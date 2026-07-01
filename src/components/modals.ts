@@ -1,15 +1,7 @@
 import { type App, Modal, Notice } from 'obsidian';
 import { decryptSecret, encryptSecret } from '../crypto.js';
 import type { InputElementOptions, SecretEditorResult, SecretFormResult, SecretPayload } from '../types.js';
-
-function createFooter(modal: Modal, form: HTMLFormElement, onYes: (el: HTMLButtonElement) => void) {
-  const e = form.createDiv({ cls: 'secret-notes-card__actions' });
-  e.createEl('button', { text: '取消' }, (v) => v.addEventListener('click', () => modal.close()));
-  e.createEl('button', { text: '确认', cls: 'mod-cta secret-notes-button' }, (v) =>
-    v.addEventListener('click', () => onYes(v)),
-  );
-  return e;
-}
+import { createForm } from './form.js';
 
 export class CryptorModal extends Modal {
   private resolver?: (result: SecretPayload | null) => void;
@@ -20,47 +12,34 @@ export class CryptorModal extends Modal {
     super(app);
   }
 
-  openEncrypt(
-    plaintext = '',
-    defaults: Partial<Pick<SecretPayload, 'title' | 'hint'>> = {},
-  ): Promise<SecretPayload | null> {
+  openEncrypt(plaintext = ''): Promise<SecretPayload | null> {
     this.preparePromise();
     this.titleEl.setText('加密');
     this.contentEl.empty();
 
-    const form = this.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
-    const passwordInput = this.input({
-      form,
-      name: 'password',
-      label: '密码',
-      type: 'password',
-      value: '',
-      required: true,
-    });
-    const titleInput = this.input({ form, name: 'title', label: '标题', type: 'text', value: defaults.title });
-    const hintInput = this.input({ form, name: 'hint', label: '密码提示', type: 'text', value: defaults.hint });
-    const confirmInput = this.input({
-      form,
-      name: 'confirm',
-      label: '确认密码',
-      type: 'password',
-      value: '',
-      required: true,
-    });
-
-    createFooter(this, form, (confirmButton) =>
-      this.handleEncryptSubmit({
-        plaintext,
-        titleInput,
-        hintInput,
-        passwordInput,
-        confirmInput,
-        confirmButton,
-      }),
+    createForm(
+      this,
+      [
+        {
+          name: 'password',
+          label: '密码',
+          type: 'password',
+          required: true,
+          focus: true,
+        },
+        {
+          name: 'confirm',
+          label: '确认密码',
+          type: 'password',
+          required: true,
+        },
+        { name: 'title', label: '标题' },
+        { name: 'hint', label: '密码提示' },
+      ],
+      (form) => this.handleEncryptSubmit(plaintext, form),
     );
 
     this.open();
-    passwordInput.focus();
     return this.waitForResult();
   }
 
@@ -154,9 +133,7 @@ export class CryptorModal extends Modal {
   }
 
   private waitForResult(): Promise<SecretPayload | null> {
-    return new Promise((resolve) => {
-      this.resolver = resolve;
-    });
+    return new Promise((resolve) => (this.resolver = resolve));
   }
 
   private finish(result: SecretPayload | null): void {
@@ -169,70 +146,34 @@ export class CryptorModal extends Modal {
     this.resolver = undefined;
   }
 
-  private input({ form, name, label, type, value = '', required = false }: InputElementOptions): HTMLInputElement {
-    this.createFieldLabel(form, label, required);
-    const field = form.createEl('input');
-    field.type = type;
-    field.name = name;
-    field.value = value;
-    return field;
-  }
+  private async handleEncryptSubmit(plaintext: string, form: HTMLFormElement): Promise<void> {
+    const data = new FormData(form);
 
-  private createFieldLabel(parent: HTMLElement, label: string, required = false): HTMLDivElement {
-    const labelEl = parent.createDiv({ cls: 'secret-notes__field-label' });
-    labelEl.createSpan({ text: label });
+    const title = String(data.get('title') ?? '').trim();
+    const hint = String(data.get('hint') ?? '').trim();
+    const password = String(data.get('password')).trim();
+    const confirm = String(data.get('confirm')).trim();
 
-    if (required) {
-      labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
-    }
-
-    return labelEl;
-  }
-
-  private buildFormResult(password: string, title: string, hint: string): SecretFormResult {
-    return {
-      password,
-      title: title.trim() || undefined,
-      hint: hint.trim() || undefined,
-    };
-  }
-
-  private async handleEncryptSubmit(args: {
-    plaintext: string;
-    titleInput: HTMLInputElement;
-    hintInput: HTMLInputElement;
-    passwordInput: HTMLInputElement;
-    confirmInput: HTMLInputElement;
-    confirmButton: HTMLButtonElement;
-  }): Promise<void> {
-    const { plaintext, titleInput, hintInput, passwordInput, confirmInput, confirmButton } = args;
-
-    if (!passwordInput.value) {
+    if (!password) {
       new Notice('请输入密码');
-      passwordInput.focus();
       return;
     }
 
-    if (passwordInput.value !== confirmInput.value) {
+    if (password !== confirm) {
       new Notice('两次输入的密码不一致');
-      confirmInput.focus();
       return;
     }
 
-    const formResult = this.buildFormResult(passwordInput.value, titleInput.value, hintInput.value);
-    confirmButton.disabled = true;
+    // TODO confirmButton.disabled = true;
 
     try {
-      const encrypted = await encryptSecret(plaintext, formResult.password, {
-        title: formResult.title,
-        hint: formResult.hint,
-      });
+      const encrypted = await encryptSecret(plaintext, password, { title, hint });
       this.finish(encrypted);
       this.close();
     } catch (error) {
       console.error(error);
       new Notice('加密失败，请稍后重试');
-      confirmButton.disabled = false;
+      // TODO confirmButton.disabled = false;
     }
   }
 

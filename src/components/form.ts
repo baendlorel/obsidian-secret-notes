@@ -12,15 +12,18 @@ export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: (
     if (o.required) {
       labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
     }
+    let field: HTMLTextAreaElement | HTMLInputElement;
     if (o.type === 'textarea') {
-      const field = form.createEl('textarea');
-      field.name = o.name;
-      field.value = o.value ?? '';
+      field = form.createEl('textarea');
     } else {
-      const field = form.createEl('input');
-      field.type = o.type;
-      field.name = o.name;
-      field.value = o.value ?? '';
+      field = form.createEl('input');
+      field.type = o.type ?? 'text';
+    }
+    field.name = o.name;
+    field.value = o.value ?? '';
+
+    if (o.focus) {
+      setTimeout(() => field.focus(), 100);
     }
   }
 
@@ -30,4 +33,6 @@ export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: (
   footer
     .createEl('button', { text: '确认', cls: 'mod-cta secret-notes-button', type: 'button' })
     .addEventListener('click', () => onYes(form));
+
+  return form;
 }

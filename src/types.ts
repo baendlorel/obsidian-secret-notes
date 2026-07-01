@@ -40,10 +40,10 @@ export interface SecretEditorResult {
 }
 
 export interface InputElementOptions {
-  form: HTMLFormElement;
   label: string;
   name: string;
-  type: 'text' | 'password' | 'textarea';
+  type?: 'text' | 'password' | 'textarea';
   value?: string;
   required?: boolean;
+  focus?: boolean;
 }
