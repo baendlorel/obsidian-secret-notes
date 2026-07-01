@@ -69,31 +69,22 @@ export function serializeSecretFence(payload: SecretPayload): string {
   return `\`\`\`secret\n${JSON.stringify(payload)}\n\`\`\`\n`;
 }
 
-export function renderPlainBlock(el: HTMLElement, onEncrypt?: () => void | Promise<void>): void {
+export function renderPlainBlock(el: HTMLElement, onEncrypt: () => void | Promise<void>): void {
   el.empty();
   el.addClass('secret-notes-panel');
+
   const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
-  card.createDiv({ cls: 'secret-notes-card__badge', text: '待加密' });
 
-  card.createDiv({
-    cls: 'secret-notes-card__meta',
-    text: onEncrypt
-      ? '这个代码块还是明文。你可以点击下方按钮手动加密。'
-      : '切换到预览模式或保存文件时，这个代码块会要求输入密码并转为密文。',
-  });
-
-  if (!onEncrypt) {
-    return;
-  }
-
+  // TODO 未加密要显示为danger的那种颜色，最好是obsidian自带的。已加密则显示为绿色
+  card.createDiv({ cls: 'secret-notes-card__badge', text: '还未加密' });
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions.createEl('button', { cls: 'mod-cta secret-notes-btn', text: '加密' }).addEventListener('click', onEncrypt);
+  actions.createEl('button', { cls: 'mod-cta', text: '加密' }).addEventListener('click', onEncrypt);
 }
 
 export function renderEncryptedBlock(
   el: HTMLElement,
   payload: SecretPayload,
-  actions: {
+  handlers: {
     onView: () => void | Promise<void>;
     onChangePassword: () => void | Promise<void>;
   },
@@ -110,9 +101,9 @@ export function renderEncryptedBlock(
 
   card.createDiv({ cls: 'secret-notes-card__meta', text: `加密时间：${payload.date}` });
 
-  const actionRow = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actionRow.createEl('button', { text: '更换密码' }).addEventListener('click', actions.onChangePassword);
-  actionRow
-    .createEl('button', { cls: 'mod-cta secret-notes-btn', text: '编辑' })
-    .addEventListener('click', actions.onView);
+  const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
+  actions.createEl('button', { text: '更换密码' }).addEventListener('click', handlers.onChangePassword);
+  // TODO 增加永久解密的机制
+  actions.createEl('button', { cls: 'mod-muted', text: '永久解密' }).addEventListener('click');
+  actions.createEl('button', { cls: 'mod-cta', text: '编辑' }).addEventListener('click', handlers.onView);
 }

@@ -89,10 +89,6 @@
   margin-left: auto;
 }
 
-.secret-notes-btn {
-  width: fit-content;
-}
-
 .secret-notes-modal__hint {
   margin-bottom: 0.9rem;
   color: var(--text-muted);
