@@ -70,13 +70,15 @@ export default class SecretNotesPlugin extends Plugin {
       return;
     }
 
+    // ! Only source/preview mode can we directly modify the editor; in preview mode, editor modifications won't
+    // ! be reflected in the editor.
+    // ! Must use vault.modify to actually write into disk
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
-    if (activeView?.file?.path === file.path) {
+    if (activeView?.file?.path === file.path && activeView.getMode() === 'source') {
       this.replaceBlockInEditor(activeView, sectionInfo, replacement);
-      return;
+    } else {
+      await this.replaceBlockInFile(file, sectionInfo, replacement);
     }
-
-    await this.replaceBlockInFile(file, sectionInfo, replacement);
   }
 
   private replaceBlockInEditor(view: MarkdownView, sectionInfo: MarkdownSectionInformation, replacement: string): void {

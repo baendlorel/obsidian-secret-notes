@@ -87,7 +87,6 @@ export abstract class SecretModal extends Modal {
 
       const data: Record<string, string> = {};
       new FormData(form).forEach((value, key) => (data[key] = String(value ?? '').trim()));
-
       onYes(data as T).finally(() => {
         noBtn.disabled = false;
         yesBtn.disabled = false;

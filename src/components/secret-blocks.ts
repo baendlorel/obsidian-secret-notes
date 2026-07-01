@@ -124,7 +124,7 @@ export function renderEncryptedPlaceholder(
   const changePasswordButton = actionRow.createEl('button', { text: '更换密码' });
   const viewButton = actionRow.createEl('button', {
     cls: 'mod-cta secret-notes-button',
-    text: '查看',
+    text: '编辑',
   });
 
   changePasswordButton.addEventListener('click', () => {
