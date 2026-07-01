@@ -43,7 +43,7 @@ export interface InputElementOptions {
   form: HTMLFormElement;
   label: string;
   name: string;
-  type: 'text' | 'password';
+  type: 'text' | 'password' | 'textarea';
   value?: string;
   required?: boolean;
 }

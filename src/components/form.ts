@@ -1,7 +1,7 @@
 import { type Modal } from 'obsidian';
 import { InputElementOptions } from '../types.js';
 
-export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: () => void) {
+export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: (form: HTMLFormElement) => void) {
   const form = modal.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
 
   // # input elements
@@ -12,16 +12,22 @@ export function createForm(modal: Modal, inputs: InputElementOptions[], onYes: (
     if (o.required) {
       labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
     }
-    const field = form.createEl('input');
-    field.type = o.type;
-    field.name = o.name;
-    field.value = o.value ?? '';
+    if (o.type === 'textarea') {
+      const field = form.createEl('textarea');
+      field.name = o.name;
+      field.value = o.value ?? '';
+    } else {
+      const field = form.createEl('input');
+      field.type = o.type;
+      field.name = o.name;
+      field.value = o.value ?? '';
+    }
   }
 
   // # footer
-  const footer = form.createDiv({ cls: 'secret-notes-card__actions' });
-  footer.createEl('button', { text: '取消' }).addEventListener('click', () => modal.close());
+  const footer = modal.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
+  footer.createEl('button', { text: '取消', type: 'button' }).addEventListener('click', () => modal.close());
   footer
-    .createEl('button', { text: '确认', cls: 'mod-cta secret-notes-button' })
-    .addEventListener('click', () => onYes());
+    .createEl('button', { text: '确认', cls: 'mod-cta secret-notes-button', type: 'button' })
+    .addEventListener('click', () => onYes(form));
 }
