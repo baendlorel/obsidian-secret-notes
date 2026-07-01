@@ -34,6 +34,14 @@ export default class SecretNotesPlugin extends Plugin {
 
             await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
           },
+          onDecrypt: async () => {
+            const plaintext = await new CryptorModal(this.app).openDecrypt(payload);
+            if (plaintext === null) {
+              return;
+            }
+
+            await this.replaceSecretBlock(ctx, el, serializeSecretFence(plaintext));
+          },
         });
       } else {
         renderPlainBlock(el, async () => {
@@ -45,6 +53,11 @@ export default class SecretNotesPlugin extends Plugin {
           await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
         });
       }
+
+      el.createDiv({
+        cls: 'kasukabe-watermark',
+        text: `v__VERSION__ © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.`,
+      });
     });
   }
 

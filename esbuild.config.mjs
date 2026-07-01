@@ -3,7 +3,6 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path';
 import esbuild from 'esbuild';
 import pkg from './package.json' with { type: 'json' };
-import zedGpuiPlugin from 'unplugin-zed-gpui';
 
 const watch = process.argv.includes('--watch');
 const outdir = 'dist';
@@ -47,7 +46,7 @@ const ctx = await esbuild.context({
   sourcemap: watch ? 'inline' : false,
   minify: true,
   logLevel: 'info',
-  plugins: [zedGpuiPlugin.esbuild()],
+  plugins: [],
   outfile: join(outdir, 'main.js'),
 });
 
@@ -59,5 +58,6 @@ if (watch) {
   await ctx.dispose();
   replace({
     __VERSION__: pkg.version,
+    __YEAR__: new Date().getFullYear(),
   });
 }

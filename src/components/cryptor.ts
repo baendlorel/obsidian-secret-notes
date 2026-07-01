@@ -89,7 +89,7 @@ export class CryptorModal extends SecretModal {
     );
 
     this.open();
-    return this.waitForResult();
+    return this.wait<NormalizedSecretPayload>();
   }
 
   openEdit(payload: NormalizedSecretPayload): Promise<NormalizedSecretPayload | null> {
@@ -97,7 +97,52 @@ export class CryptorModal extends SecretModal {
     this.showPasswordForm(payload);
 
     this.open();
-    return this.waitForResult();
+    return this.wait<NormalizedSecretPayload>();
+  }
+
+  openDecrypt(payload: NormalizedSecretPayload): Promise<string | null> {
+    this.prepare();
+    this.showDecryptForm(payload);
+
+    this.open();
+    return this.wait<string>();
+  }
+
+  private showDecryptForm(payload: NormalizedSecretPayload): void {
+    this.titleEl.setText('永久解密');
+    this.createForm<FormPasswordInput>(
+      [
+        {
+          name: 'password',
+          label: '密码',
+          type: 'password',
+          required: true,
+          focus: true,
+          placeholder: payload.hint,
+        },
+      ],
+      (data) => this.submitDecrypt(payload, data),
+    );
+  }
+
+  private async submitDecrypt(payload: NormalizedSecretPayload, data: FormPasswordInput): Promise<void> {
+    const { password } = data;
+
+    if (!password) {
+      new Notice('请输入密码');
+      return;
+    }
+
+    try {
+      const plaintext = await decryptSecret(payload, password);
+      this.handoffInProgress = true; // prevents onClose calling finish(null)
+      this.finish<string>(plaintext);
+      this.close();
+    } catch (e) {
+      console.error(e);
+      new Notice('密码错误，解密失败');
+      this.showDecryptForm(payload);
+    }
   }
 
   private async submitEdit(payload: NormalizedSecretPayload, data: FormPasswordInput): Promise<void> {
@@ -156,7 +201,7 @@ export class CryptorModal extends SecretModal {
     );
 
     this.open();
-    return this.waitForResult();
+    return this.wait<NormalizedSecretPayload>();
   }
 
   private async submitChangePassword(payload: NormalizedSecretPayload, data: FormChangePassword): Promise<void> {

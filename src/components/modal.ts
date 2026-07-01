@@ -1,9 +1,9 @@
 import { type App, Modal, Notice } from 'obsidian';
-import type { FormEncrypt, NormalizedSecretPayload, InputElementOptions } from '../types.js';
+import type { FormEncrypt, InputElementOptions } from '../types.js';
 import { encryptSecret } from '../crypto.js';
 
 export abstract class SecretModal extends Modal {
-  protected resolver?: (value: NormalizedSecretPayload | null) => void;
+  protected resolver?: (value: unknown) => void;
   protected settled: boolean = false;
   protected handoffInProgress: boolean = false;
 
@@ -11,8 +11,8 @@ export abstract class SecretModal extends Modal {
     super(app);
   }
 
-  protected waitForResult(): Promise<NormalizedSecretPayload | null> {
-    return new Promise<NormalizedSecretPayload | null>((resolve) => (this.resolver = resolve));
+  protected wait<T>(): Promise<T | null> {
+    return new Promise<T | null>((resolve) => (this.resolver = resolve as (value: unknown) => void));
   }
 
   protected prepare(): void {
@@ -21,7 +21,7 @@ export abstract class SecretModal extends Modal {
     this.resolver = undefined;
   }
 
-  protected finish(result: NormalizedSecretPayload | null): void {
+  protected finish<T>(result: T): void {
     if (this.settled) {
       return;
     }

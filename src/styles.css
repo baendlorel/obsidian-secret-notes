@@ -55,11 +55,26 @@
   width: fit-content;
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--interactive-accent) 16%, transparent);
+  background: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
   color: var(--text-accent);
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+}
+
+.secret-notes-card__badge--danger {
+  background: color-mix(in srgb, var(--text-error) 14%, transparent);
+  color: var(--text-error);
+}
+
+.secret-notes-card__badge--warning {
+  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
+  color: var(--text-warning);
+}
+
+.secret-notes-card__badge--success {
+  background: color-mix(in srgb, var(--text-success) 14%, transparent);
+  color: var(--text-success);
 }
 
 .secret-notes-card__title {
@@ -113,4 +128,16 @@
     grid-template-columns: 1fr;
     gap: 8px;
   }
+}
+
+.kasukabe-watermark {
+  position: absolute;
+  bottom: 18px;
+  left: 10px;
+  color: var(--text-faint);
+  font-size: 0.65rem;
+  opacity: 0.4;
+  padding: 0.2rem 0.3rem;
+  pointer-events: none;
+  user-select: none;
 }
