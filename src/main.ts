@@ -8,7 +8,7 @@ import {
 } from 'obsidian';
 import { isEncrypted } from './crypto.js';
 import { SECRET_LANG } from './constants.js';
-import { CryptorModal } from './components/modals.js';
+import { EditModal } from './components/edit.js';
 import {
   renderEncryptedPlaceholder,
   renderPlainPlaceholder,
@@ -22,7 +22,7 @@ export default class SecretNotesPlugin extends Plugin {
 
       if (!payload) {
         renderPlainPlaceholder(el, async () => {
-          const result = await new CryptorModal(this.app).openEncrypt(source);
+          const result = await new EditModal(this.app).openEncrypt(source);
           if (!result) {
             return;
           }
@@ -34,7 +34,7 @@ export default class SecretNotesPlugin extends Plugin {
 
       renderEncryptedPlaceholder(el, payload, {
         onView: async () => {
-          const result = await new CryptorModal(this.app).openEdit(payload);
+          const result = await new EditModal(this.app).openEdit(payload);
           if (!result) {
             return;
           }
@@ -42,7 +42,7 @@ export default class SecretNotesPlugin extends Plugin {
           await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
         },
         onChangePassword: async () => {
-          const result = await new CryptorModal(this.app).openChangePassword(payload);
+          const result = await new EditModal(this.app).openChangePassword(payload);
           if (!result) {
             return;
           }
