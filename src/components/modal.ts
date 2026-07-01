@@ -80,10 +80,10 @@ export abstract class SecretModal extends Modal {
     // # footer
     const footer = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
 
-    const noBtn = footer.createEl('button', { text: t('模态框.按钮.取消'), type: 'button' });
+    const noBtn = footer.createEl('button', { text: t('取消'), type: 'button' });
     noBtn.addEventListener('click', () => this.close());
 
-    const yesBtn = footer.createEl('button', { text: t('模态框.按钮.确认'), cls: 'mod-cta', type: 'button' });
+    const yesBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });
     yesBtn.addEventListener('click', () => {
       noBtn.disabled = true;
       yesBtn.disabled = true;
@@ -103,12 +103,12 @@ export abstract class SecretModal extends Modal {
     const { title, hint, password, passwordConfirm } = data;
 
     if (!password) {
-      new Notice(t('通知.请输入密码'));
+      new Notice(t('请输入密码'));
       return;
     }
 
     if (password !== passwordConfirm) {
-      new Notice(t('通知.两次输入的密码不一致'));
+      new Notice(t('两次输入的密码不一致'));
       return;
     }
 
@@ -119,7 +119,7 @@ export abstract class SecretModal extends Modal {
       this.close();
     } catch (error) {
       console.error(error);
-      new Notice(t('通知.加密失败请稍后重试'));
+      new Notice(t('加密失败，请稍后重试'));
     }
   }
 }
