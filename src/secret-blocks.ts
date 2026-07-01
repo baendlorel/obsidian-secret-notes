@@ -1,5 +1,5 @@
-import { FOOTER_PATTERN, HEADER_PATTERN, SECRET_VERSION } from './constants';
-import type { SecretBlock, SecretPayload } from './types';
+import { isFooter, isHeader, SECRET_VERSION } from './constants.js';
+import type { SecretBlock, SecretPayload } from './types.js';
 
 export function findSecretBlocks(content: string): SecretBlock[] {
   const lines = content.split('\n');
@@ -14,14 +14,14 @@ export function findSecretBlocks(content: string): SecretBlock[] {
     offset += line.length + 1;
 
     if (startLine === -1) {
-      if (HEADER_PATTERN.test(line)) {
+      if (isHeader(line)) {
         startLine = index;
         startOffset = lineOffset;
       }
       continue;
     }
 
-    if (FOOTER_PATTERN.test(line)) {
+    if (isFooter(line)) {
       const blockLines = lines.slice(startLine + 1, index);
       const endOffset = offset;
       blocks.push({
@@ -66,7 +66,7 @@ export function parseSecretPayload(source: string): SecretPayload | null {
 }
 
 export function serializeSecretFence(payload: SecretPayload): string {
-  return `\`\`\`secret\n${JSON.stringify(payload, null, 2)}\n\`\`\`\n`;
+  return `\`\`\`secret\n${JSON.stringify(payload)}\n\`\`\`\n`;
 }
 
 export function renderPlainPlaceholder(el: HTMLElement, onEncrypt?: () => void | Promise<void>): void {

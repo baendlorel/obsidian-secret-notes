@@ -1,0 +1,1 @@
+import的时候用x.js的新写法，nodenext
