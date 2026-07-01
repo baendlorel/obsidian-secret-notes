@@ -17,6 +17,7 @@ export function createForm(
     if (o.required) {
       labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
     }
+
     let field: HTMLTextAreaElement | HTMLInputElement;
     if (o.type === 'textarea') {
       field = form.createEl('textarea');
@@ -27,6 +28,9 @@ export function createForm(
     field.name = o.name;
     field.value = o.value ?? '';
 
+    if (o.placeholder) {
+      field.placeholder = o.placeholder;
+    }
     if (o.focus) {
       setTimeout(() => field.focus(), 100);
     }

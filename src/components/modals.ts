@@ -35,14 +35,14 @@ export class CryptorModal extends Modal {
         { name: 'title', label: '标题' },
         { name: 'hint', label: '密码提示' },
       ],
-      (form) => this.handleEncrypt(plaintext, form),
+      (form) => this.submitEncrypt(plaintext, form),
     );
 
     this.open();
     return this.waitForResult();
   }
 
-  private async handleEncrypt(plaintext: string, form: HTMLFormElement): Promise<void> {
+  private async submitEncrypt(plaintext: string, form: HTMLFormElement): Promise<void> {
     const data = new FormData(form);
 
     const title = String(data.get('title') ?? '').trim();
@@ -60,8 +60,6 @@ export class CryptorModal extends Modal {
       return;
     }
 
-    // TODO confirmButton.disabled = true;
-
     try {
       const encrypted = await encryptSecret(plaintext, password, { title, hint });
       this.finish(encrypted);
@@ -69,72 +67,123 @@ export class CryptorModal extends Modal {
     } catch (error) {
       console.error(error);
       new Notice('加密失败，请稍后重试');
-      // TODO confirmButton.disabled = false;
     }
   }
 
-  openPasswordInput(payload: SecretPayload): Promise<SecretPayload | null> {
+  openEdit(payload: SecretPayload): Promise<SecretPayload | null> {
     this.preparePromise();
     this.titleEl.setText('输入密码');
-    this.contentEl.empty();
-
-    const form = this.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
-    const passwordInput = this.input({
-      form,
-      name: 'password',
-      label: '密码',
-      type: 'password',
-      required: true,
-    });
-    const errorEl = this.contentEl.createDiv({ cls: 'secret-notes-card__warning' });
-    const hintEl = this.contentEl.createDiv({ cls: 'secret-notes-modal__hint' });
-    hintEl.hide();
-
-    createFooter(this, form, (confirmButton) => {
-      void this.handleDecryptSubmit({
-        payload,
-        passwordInput,
-        errorEl,
-        hintEl,
-        confirmButton,
-      });
-    });
+    createForm(
+      this,
+      [
+        {
+          name: 'password',
+          label: '密码',
+          type: 'password',
+          required: true,
+          focus: true,
+          placeholder: payload.hint,
+        },
+      ],
+      (form) => this.submitEdit(payload, form),
+    );
 
     this.open();
-    passwordInput.focus();
     return this.waitForResult();
+  }
+
+  private async submitEdit(payload: SecretPayload, form: HTMLFormElement): Promise<void> {
+    const data = new FormData(form);
+    const password = String(data.get('password') ?? '').trim();
+
+    if (!password) {
+      new Notice('请输入密码');
+      return;
+    }
+
+    try {
+      const plaintext = await decryptSecret(payload, password);
+      this.handoffInProgress = true;
+      this.close();
+      const result = await this.openDecrypted(payload, password, plaintext);
+      this.finish(result);
+    } catch (e) {
+      console.error(e);
+      new Notice('密码错误，解密失败');
+    }
   }
 
   openChangePassword(payload: SecretPayload): Promise<SecretPayload | null> {
     this.preparePromise();
     this.titleEl.setText('验证旧密码');
-    this.contentEl.empty();
 
     // TODO 难道不能用new FormData form元素吗？一定要逐个处理吗
-    const form = this.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
-    const passwordInput = this.input({ form, name: 'password', label: '当前密码', type: 'password', required: true });
-    const errorEl = this.contentEl.createDiv({ cls: 'secret-notes-card__warning' });
-
-    const actions = form.createDiv({ cls: 'secret-notes-card__actions' });
-    const cancelButton = actions.createEl('button', { text: '取消' });
-    const confirmButton = actions.createEl('button', { cls: 'mod-cta secret-notes-button', text: '下一步' });
-
-    confirmButton.addEventListener('click', () => {
-      void this.handleChangePasswordSubmit({
-        payload,
-        passwordInput,
-        errorEl,
-        confirmButton,
-      });
-    });
-
-    cancelButton.addEventListener('click', () => {
-      this.close();
-    });
+    createForm(
+      this,
+      [
+        {
+          name: 'currentPassword',
+          label: '当前密码',
+          type: 'password',
+          required: true,
+          focus: true,
+          placeholder: payload.hint,
+        },
+        {
+          name: 'newPassword',
+          label: '新密码',
+          type: 'password',
+          required: true,
+        },
+        {
+          name: 'newPasswordConfirm',
+          label: '确认密码',
+          type: 'password',
+          required: true,
+        },
+        { name: 'title', label: '标题', value: payload.title },
+        { name: 'hint', label: '提示', value: payload.hint },
+      ],
+      (form) => this.submitChangePassword(payload, form),
+    );
 
     this.open();
-    passwordInput.focus();
     return this.waitForResult();
+  }
+
+  // TODO 把所有的入参form都换成直接是对象
+  private async submitChangePassword(payload: SecretPayload, form: HTMLFormElement): Promise<void> {
+    const data = new FormData(form);
+    const currentPassword = String(data.get('currentPassword') ?? '').trim();
+    const newPassword = String(data.get('newPassword') ?? '').trim();
+    const newPasswordConfirm = String(data.get('newPasswordConfirm') ?? '').trim();
+    const title = String(data.get('title') ?? '').trim();
+    const hint = String(data.get('hint') ?? '').trim();
+
+    if (!currentPassword) {
+      new Notice('请输入当前密码');
+      return;
+    }
+
+    if (!newPassword) {
+      new Notice('请输入新密码');
+      return;
+    }
+
+    if (newPassword !== newPasswordConfirm) {
+      new Notice('两次输入的密码不一致');
+      return;
+    }
+
+    try {
+      const plaintext = await decryptSecret(payload, currentPassword);
+      this.handoffInProgress = true;
+      this.close();
+      const result = await this.submitEncrypt(plaintext, form);
+    } catch (error) {
+      console.error(error);
+      new Notice('当前密码错误');
+    }
   }
 
   private async openDecrypted(
@@ -174,76 +223,6 @@ export class CryptorModal extends Modal {
     this.settled = true;
     this.resolver?.(result);
     this.resolver = undefined;
-  }
-
-  private async handleDecryptSubmit(args: {
-    payload: SecretPayload;
-    passwordInput: HTMLInputElement;
-    errorEl: HTMLDivElement;
-    hintEl: HTMLDivElement;
-    confirmButton: HTMLButtonElement;
-  }): Promise<void> {
-    const { payload, passwordInput, errorEl, hintEl, confirmButton } = args;
-
-    if (!passwordInput.value) {
-      errorEl.setText('请输入密码');
-      passwordInput.focus();
-      return;
-    }
-
-    errorEl.empty();
-    confirmButton.disabled = true;
-
-    try {
-      const plaintext = await decryptSecret(payload, passwordInput.value);
-      this.handoffInProgress = true;
-      this.close();
-      const result = await this.openDecrypted(payload, passwordInput.value, plaintext);
-      this.finish(result);
-    } catch (error) {
-      console.error(error);
-      errorEl.setText('密码错误，解密失败');
-      if (payload.hint) {
-        hintEl.setText(`密码提示：${payload.hint}`);
-        hintEl.show();
-      }
-      confirmButton.disabled = false;
-      passwordInput.select();
-    }
-  }
-
-  private async handleChangePasswordSubmit(args: {
-    payload: SecretPayload;
-    passwordInput: HTMLInputElement;
-    errorEl: HTMLDivElement;
-    confirmButton: HTMLButtonElement;
-  }): Promise<void> {
-    const { payload, passwordInput, errorEl, confirmButton } = args;
-
-    if (!passwordInput.value) {
-      errorEl.setText('请输入当前密码');
-      passwordInput.focus();
-      return;
-    }
-
-    errorEl.empty();
-    confirmButton.disabled = true;
-
-    try {
-      const plaintext = await decryptSecret(payload, passwordInput.value);
-      this.handoffInProgress = true;
-      this.close();
-      const result = await this.openEncrypt(plaintext, {
-        title: payload.title,
-        hint: payload.hint,
-      });
-      this.finish(result);
-    } catch (error) {
-      console.error(error);
-      errorEl.setText('当前密码错误');
-      confirmButton.disabled = false;
-      passwordInput.select();
-    }
   }
 }
 

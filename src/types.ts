@@ -46,4 +46,5 @@ export interface InputElementOptions {
   value?: string;
   required?: boolean;
   focus?: boolean;
+  placeholder?: string;
 }

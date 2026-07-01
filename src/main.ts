@@ -34,7 +34,7 @@ export default class SecretNotesPlugin extends Plugin {
 
       renderEncryptedPlaceholder(el, payload, {
         onView: async () => {
-          const result = await new CryptorModal(this.app).openPasswordInput(payload);
+          const result = await new CryptorModal(this.app).openEdit(payload);
           if (!result) {
             return;
           }
