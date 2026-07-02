@@ -2,7 +2,7 @@
   "id": "secret-notes",
   "name": "Secret Notes",
   "version": "0.1.2",
-  "minAppVersion": "1.5.0",
+  "minAppVersion": "1.6.0",
   "description": "Encrypt and preview editable secret code blocks.",
   "author": "Kasukabe Tsumugi",
   "authorUrl": "https://github.com/baendlorel/",
