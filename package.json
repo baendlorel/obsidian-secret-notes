@@ -1,6 +1,6 @@
 {
   "name": "secret-notes",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "An Obsidian plugin for encrypting and previewing secret fenced code blocks.",
   "description_zh": "一个用于加密和预览 secret 代码块的 Obsidian 插件。",
   "scripts": {
