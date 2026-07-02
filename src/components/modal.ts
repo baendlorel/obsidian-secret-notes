@@ -1,4 +1,4 @@
-import { type App, Modal, Notice } from 'obsidian';
+import { Modal, Notice } from 'obsidian';
 import type { FormEncrypt, InputElementOptions } from '../types.js';
 import { encryptSecret } from '../crypto.js';
 import { t } from '../i18n/index.js';
@@ -7,10 +7,6 @@ export abstract class SecretModal extends Modal {
   protected resolver?: (value: unknown) => void;
   protected settled: boolean = false;
   protected handoffInProgress: boolean = false;
-
-  constructor(app: App) {
-    super(app);
-  }
 
   protected wait<T>(): Promise<T | null> {
     return new Promise<T | null>((resolve) => (this.resolver = resolve as (value: unknown) => void));
@@ -57,6 +53,7 @@ export abstract class SecretModal extends Modal {
         labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
       }
 
+      // eslint-disable-next-line init-declarations
       let field: HTMLTextAreaElement | HTMLInputElement;
       if (o.type === 'textarea') {
         field = form.createEl('textarea');
@@ -73,7 +70,7 @@ export abstract class SecretModal extends Modal {
         field.placeholder = o.placeholder;
       }
       if (o.focus) {
-        setTimeout(() => field.focus(), 100);
+        window.setTimeout(() => field.focus(), 100);
       }
     }
 
@@ -117,8 +114,8 @@ export abstract class SecretModal extends Modal {
       this.handoffInProgress = true; // prevents onClose calling finish(null)
       this.finish(encrypted);
       this.close();
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
       new Notice(t('加密失败，请稍后重试'));
     }
   }

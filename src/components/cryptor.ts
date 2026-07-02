@@ -1,4 +1,4 @@
-import { type App, Notice } from 'obsidian';
+import { Notice } from 'obsidian';
 import { decryptSecret } from '../crypto.js';
 import { t } from '../i18n/index.js';
 import type {
@@ -11,10 +11,6 @@ import type {
 import { SecretModal } from './modal.js';
 
 export class CryptorModal extends SecretModal {
-  constructor(app: App) {
-    super(app);
-  }
-
   private showPasswordForm(payload: NormalizedSecretPayload): void {
     this.titleEl.setText(t('输入密码'));
     this.createForm<FormPasswordInput>(
@@ -58,7 +54,7 @@ export class CryptorModal extends SecretModal {
         this.encrypt(data.plaintext, {
           title: data.title,
           hint: data.hint,
-          password: password,
+          password,
           passwordConfirm: password,
         }),
     );

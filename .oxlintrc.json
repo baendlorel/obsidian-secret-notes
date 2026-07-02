@@ -10,10 +10,17 @@
     "style": "warn"
   },
   "rules": {
+    "no-inferrable-types": "off",
+    "prefer-for-of": "off",
+    "id-length": "off",
+    "sort-keys": "off",
     "no-console": "off",
+    "no-magic-numbers": "off",
+    "no-new": "off",
     "prefer-const": "error"
   },
   "ignorePatterns": [
+    "scripts/**",
     "node_modules/",
     "dist/",
     "*.config.js",
