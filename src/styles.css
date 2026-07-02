@@ -132,7 +132,7 @@
 
 .kasukabe-watermark {
   position: absolute;
-  bottom: 18px;
+  /* bottom: 18px; */
   left: 10px;
   color: var(--text-faint);
   font-size: 0.65rem;
