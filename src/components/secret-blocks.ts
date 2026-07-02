@@ -59,9 +59,9 @@ export const renderEncryptedBlock = (
   el: HTMLElement,
   payload: SecretPayload,
   handlers: {
-    onView: () => void | Promise<void>;
-    onChangePassword: () => void | Promise<void>;
-    onDecrypt: () => void | Promise<void>;
+    onView: () => void;
+    onChangePassword: () => void;
+    onDecrypt: () => void;
   },
 ): void => {
   el.empty();

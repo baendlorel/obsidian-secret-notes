@@ -81,16 +81,21 @@ export abstract class SecretModal extends Modal {
     noBtn.addEventListener('click', () => this.close());
 
     const yesBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });
-    yesBtn.addEventListener('click', () => {
+    yesBtn.addEventListener('click', async () => {
       noBtn.disabled = true;
       yesBtn.disabled = true;
 
       const data: Record<string, string> = {};
       new FormData(form).forEach((value, key) => (data[key] = String(value ?? '').trim()));
-      onYes(data as T).finally(() => {
+
+      try {
+        await onYes(data as T);
+      } catch (e) {
+        console.error(e);
+      } finally {
         noBtn.disabled = false;
         yesBtn.disabled = false;
-      });
+      }
     });
 
     return form;
