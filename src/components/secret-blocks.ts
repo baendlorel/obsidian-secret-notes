@@ -44,7 +44,7 @@ export const findSecretBlocks = (content: string): SecretBlock[] => {
 export const serializeSecretFence = (entry: SecretPayload | string): string =>
   `\`\`\`${SECRET_LANG}\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
 
-export const renderPlainBlock = (el: HTMLElement, onEncrypt: () => void | Promise<void>): void => {
+export const renderPlainBlock = (el: HTMLElement, onEncrypt: () => void): void => {
   el.empty();
   el.addClass('secret-notes-panel');
 

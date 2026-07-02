@@ -53,7 +53,6 @@ export abstract class SecretModal extends Modal {
         labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
       }
 
-      // eslint-disable-next-line init-declarations
       let field: HTMLTextAreaElement | HTMLInputElement;
       if (o.type === 'textarea') {
         field = form.createEl('textarea');
@@ -81,21 +80,19 @@ export abstract class SecretModal extends Modal {
     noBtn.addEventListener('click', () => this.close());
 
     const yesBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });
-    yesBtn.addEventListener('click', async () => {
+    yesBtn.addEventListener('click', () => {
       noBtn.disabled = true;
       yesBtn.disabled = true;
 
       const data: Record<string, string> = {};
       new FormData(form).forEach((value, key) => (data[key] = String(value ?? '').trim()));
 
-      try {
-        await onYes(data as T);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        noBtn.disabled = false;
-        yesBtn.disabled = false;
-      }
+      void onYes(data as T)
+        .catch(console.error)
+        .finally(() => {
+          noBtn.disabled = false;
+          yesBtn.disabled = false;
+        });
     });
 
     return form;
