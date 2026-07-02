@@ -5,7 +5,7 @@ import { toArrayBuffer, bytesToBase64, dtm, base64ToBytes } from './utils.js';
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
 
-export async function encryptSecret(args: EncryptArgs): Promise<NormalizedSecretPayload> {
+export const encryptSecret = async (args: EncryptArgs): Promise<NormalizedSecretPayload> => {
   const { plaintext, password, title, hint } = args;
 
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -30,9 +30,9 @@ export async function encryptSecret(args: EncryptArgs): Promise<NormalizedSecret
     encrypted: `${bytesToBase64(iv)}:${bytesToBase64(tag)}:${bytesToBase64(cipherBytes)}`,
     date: dtm(new Date()),
   };
-}
+};
 
-export async function decryptSecret(payload: SecretPayload, password: string): Promise<string> {
+export const decryptSecret = async (payload: SecretPayload, password: string): Promise<string> => {
   const [ivText, tagText, encryptedText] = payload.encrypted.split(':');
   if (!ivText || !tagText || !encryptedText) {
     throw new Error('Invalid payload.');
@@ -56,15 +56,15 @@ export async function decryptSecret(payload: SecretPayload, password: string): P
   );
 
   return textDecoder.decode(decrypted);
-}
+};
 
-async function deriveKey(password: string): Promise<CryptoKey> {
+const deriveKey = async (password: string): Promise<CryptoKey> => {
   const passwordBytes = textEncoder.encode(password);
   const hash = await crypto.subtle.digest('SHA-256', passwordBytes);
   return crypto.subtle.importKey('raw', hash, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
-}
+};
 
-export function parseSecretPayload(source: string): NormalizedSecretPayload | null {
+export const parseSecretPayload = (source: string): NormalizedSecretPayload | null => {
   try {
     const { encrypted, v, date, title, hint } = JSON.parse(source) as SecretPayload;
     if (
@@ -87,4 +87,4 @@ export function parseSecretPayload(source: string): NormalizedSecretPayload | nu
   } catch {
     return null;
   }
-}
+};

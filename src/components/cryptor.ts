@@ -1,6 +1,3 @@
-import { Notice } from 'obsidian';
-import { decryptSecret } from '../crypto.js';
-import { t } from '../i18n/index.js';
 import type {
   FormChangePassword,
   FormEdit,
@@ -8,6 +5,10 @@ import type {
   FormPasswordInput,
   NormalizedSecretPayload,
 } from '../types.js';
+
+import { Notice } from 'obsidian';
+import { t } from '../i18n/index.js';
+import { decryptSecret } from '../crypto.js';
 import { SecretModal } from './modal.js';
 
 export class CryptorModal extends SecretModal {

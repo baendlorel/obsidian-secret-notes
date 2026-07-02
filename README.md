@@ -1,6 +1,6 @@
 # Obsidian Secret Notes
 
-Keep sensitive content in Obsidian inside a `` ```secret `` fenced code block, encrypted with a password. Once encrypted, only ciphertext is written to the file — the plaintext is revealed only after entering the correct password.
+Keep sensitive content in Obsidian inside a `` ```secretnote `` fenced code block, encrypted with a password. Once encrypted, only ciphertext is written to the file — the plaintext is revealed only after entering the correct password.
 
 - 🔒 Local encryption — your password never leaves your device
 - 📝 Encrypted blocks can be edited, re-keyed, or permanently decrypted back to plaintext at any time
@@ -11,7 +11,7 @@ Keep sensitive content in Obsidian inside a `` ```secret `` fenced code block, e
 Write a `secret` code block in any note and put the content you want to protect inside it:
 
 <pre>
-```secret
+```secretnote
 some sensitive content
 ```
 </pre>

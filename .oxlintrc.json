@@ -10,6 +10,11 @@
     "style": "warn"
   },
   "rules": {
+    "no-ternary": "off",
+    "no-continue": "off",
+    "capitalized-comments": "off",
+    "sort-imports": "off",
+    "max-statements": "off",
     "no-inferrable-types": "off",
     "prefer-for-of": "off",
     "id-length": "off",

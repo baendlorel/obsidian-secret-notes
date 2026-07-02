@@ -1,35 +1,35 @@
 import type { SecretBlock, SecretPayload } from '../types.js';
-import { isFooter, isHeader } from '../consts.js';
+import { isFooter, isHeader, SECRET_LANG } from '../consts.js';
 import { t } from '../i18n/index.js';
 
-export function findSecretBlocks(content: string): SecretBlock[] {
+export const findSecretBlocks = (content: string): SecretBlock[] => {
   const lines = content.split('\n');
   const blocks: SecretBlock[] = [];
   let offset = 0;
   let startLine = -1;
   let startOffset = -1;
 
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
     const lineOffset = offset;
     offset += line.length + 1;
 
     if (startLine === -1) {
       if (isHeader(line)) {
-        startLine = index;
+        startLine = i;
         startOffset = lineOffset;
       }
       continue;
     }
 
     if (isFooter(line)) {
-      const blockLines = lines.slice(startLine + 1, index);
+      const blockLines = lines.slice(startLine + 1, i);
       const endOffset = offset;
       blocks.push({
         from: startOffset,
         to: endOffset,
         lineStart: startLine,
-        lineEnd: index,
+        lineEnd: i,
         raw: content.slice(startOffset, endOffset),
         content: blockLines.join('\n'),
       });
@@ -39,12 +39,12 @@ export function findSecretBlocks(content: string): SecretBlock[] {
   }
 
   return blocks;
-}
+};
 
 export const serializeSecretFence = (entry: SecretPayload | string): string =>
-  `\`\`\`secret\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
+  `\`\`\`${SECRET_LANG}\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
 
-export function renderPlainBlock(el: HTMLElement, onEncrypt: () => void | Promise<void>): void {
+export const renderPlainBlock = (el: HTMLElement, onEncrypt: () => void | Promise<void>): void => {
   el.empty();
   el.addClass('secret-notes-panel');
 
@@ -53,9 +53,9 @@ export function renderPlainBlock(el: HTMLElement, onEncrypt: () => void | Promis
   card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: t('未加密') });
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
   actions.createEl('button', { cls: 'mod-cta', text: t('加密') }).addEventListener('click', onEncrypt);
-}
+};
 
-export function renderEncryptedBlock(
+export const renderEncryptedBlock = (
   el: HTMLElement,
   payload: SecretPayload,
   handlers: {
@@ -63,7 +63,7 @@ export function renderEncryptedBlock(
     onChangePassword: () => void | Promise<void>;
     onDecrypt: () => void | Promise<void>;
   },
-): void {
+): void => {
   el.empty();
   el.addClass('secret-notes-panel');
 
@@ -80,4 +80,4 @@ export function renderEncryptedBlock(
   actions.createEl('button', { text: t('更换密码') }).addEventListener('click', handlers.onChangePassword);
   actions.createEl('button', { text: t('永久解密') }).addEventListener('click', handlers.onDecrypt);
   actions.createEl('button', { cls: 'mod-cta', text: t('编辑') }).addEventListener('click', handlers.onView);
-}
+};
