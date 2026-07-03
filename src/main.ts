@@ -27,14 +27,6 @@ export default class SecretNotesPlugin extends Plugin {
 
             await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
           },
-          onChangePassword: async () => {
-            const result = await new CryptorModal(this.app).openChangePassword(payload);
-            if (!result) {
-              return;
-            }
-
-            await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
-          },
           onDecrypt: async () => {
             const plaintext = await new CryptorModal(this.app).openDecrypt(payload);
             if (plaintext === null) {
@@ -45,7 +37,7 @@ export default class SecretNotesPlugin extends Plugin {
           },
         });
       } else {
-        renderPlainBlock(el, {
+        renderPlainBlock(el, source, {
           onEncrypt: async () => {
             const result = await new CryptorModal(this.app).openEncrypt(source);
             if (!result) {

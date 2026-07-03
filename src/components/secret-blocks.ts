@@ -45,15 +45,22 @@ export const findSecretBlocks = (content: string): SecretBlock[] => {
 export const serializeSecretFence = (entry: SecretPayload | string): string =>
   `\`\`\`${SECRET_LANG}\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
 
-export const renderPlainBlock = (el: HTMLElement, { onEncrypt }: { onEncrypt: () => Promise<void> }): void => {
+export const renderPlainBlock = (
+  el: HTMLElement,
+  source: string,
+  { onEncrypt }: { onEncrypt: () => Promise<void> },
+): void => {
   el.empty();
   el.addClass('secret-notes-panel secret-notes-card__bg--warning');
 
   const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
 
-  card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: t('未加密') });
-  const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions.createEl('button', { cls: 'mod-cta', text: t('加密') }).addEventListener('click', onEncrypt as EventListener);
+  card
+    .createDiv({ cls: 'secret-notes-card__actions' })
+    .createEl('button', { cls: 'mod-cta', text: t('加密') })
+    .addEventListener('click', onEncrypt as EventListener);
+  // card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: t('未加密') });
+  card.createDiv({ cls: 'secret-notes__meta', text: source });
 };
 
 export const renderEncryptedBlock = (
@@ -61,11 +68,9 @@ export const renderEncryptedBlock = (
   payload: SecretPayload,
   {
     onView,
-    onChangePassword,
     onDecrypt,
   }: {
     onView: () => Promise<void>;
-    onChangePassword: () => Promise<void>;
     onDecrypt: () => Promise<void>;
   },
 ): void => {
@@ -73,17 +78,17 @@ export const renderEncryptedBlock = (
   el.addClass('secret-notes-panel');
 
   const card = el.createDiv({ cls: 'secret-notes-card' });
+
+  const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
+  actions
+    .createEl('button', { cls: 'mod-cta', text: t('查看/编辑') })
+    .addEventListener('click', onView as EventListener);
+  actions.createEl('button', { text: t('永久解密') }).addEventListener('click', onDecrypt as EventListener);
+
   card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--success', text: t('已加密') });
   card.createDiv({ cls: 'secret-notes-card__badge', text: dtm(payload.date) });
 
   if (payload.title) {
     card.createDiv({ cls: 'secret-notes-card__title', text: payload.title });
   }
-
-  const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions.createEl('button', { text: t('更换密码') }).addEventListener('click', onChangePassword as EventListener);
-  actions.createEl('button', { text: t('永久解密') }).addEventListener('click', onDecrypt as EventListener);
-  actions
-    .createEl('button', { cls: 'mod-cta', text: t('查看/编辑') })
-    .addEventListener('click', onView as EventListener);
 };
