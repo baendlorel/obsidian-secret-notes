@@ -31,7 +31,7 @@ export class CryptorModal extends SecretModal {
 
   private showEditForm(payload: NormalizedSecretPayload, plaintext: string, password: string): void {
     this.modalEl.addClass('secret-notes-modal--decrypted');
-    this.titleEl.setText(t('编辑明文'));
+    this.titleEl.setText(t('编辑'));
     this.createForm<FormEdit>(
       [
         {

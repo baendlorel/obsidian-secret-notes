@@ -3,12 +3,12 @@
 }
 
 .secret-notes__encrypt-form {
-  margin-top: 30px;
+  margin-top: 20px;
   margin-bottom: 30px;
-  display: grid;
+  display: flex;
   grid-template-columns: minmax(6.5rem, 8.5rem) minmax(0, 1fr);
   gap: 10px 14px;
-  align-items: center;
+  flex-direction: column;
 }
 
 .secret-notes__encrypt-form > div {
@@ -108,6 +108,9 @@
   gap: 0.75rem;
   width: 100%;
 }
+.secret-notes-modal__actions button:first-child {
+  margin-left: auto;
+}
 
 .secret-notes-card__actions {
   margin-top: 20px;
@@ -116,10 +119,6 @@
   width: 100%;
   justify-content: center;
 }
-
-/* .secret-notes-card__actions button:first-child {
-  margin-left: auto;
-} */
 
 .secret-notes-modal__hint {
   margin-bottom: 0.9rem;
