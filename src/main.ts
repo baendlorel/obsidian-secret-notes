@@ -50,8 +50,8 @@ export default class SecretNotesPlugin extends Plugin {
       }
 
       el.createDiv({
-        cls: 'kasukabe-kasukabe-watermark__secret-notes',
-        text: `v__VERSION__ © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.`,
+        cls: 'kasukabe-watermark__secret-notes',
+        text: `v__VERSION__`, //  © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.
       });
     });
   }

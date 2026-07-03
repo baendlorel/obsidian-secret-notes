@@ -44,7 +44,7 @@ const ctx = await esbuild.context({
   target: 'es2020',
   platform: 'browser',
   sourcemap: watch ? 'inline' : false,
-  minify: true,
+  minify: !process.argv.includes('--test'),
   logLevel: 'info',
   plugins: [],
   outfile: join(outdir, 'main.js'),

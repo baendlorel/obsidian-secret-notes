@@ -51,16 +51,17 @@ export const renderPlainBlock = (
   { onEncrypt }: { onEncrypt: () => Promise<void> },
 ): void => {
   el.empty();
-  el.addClass('secret-notes-panel secret-notes-card__bg--warning');
+  el.addClass('secret-notes-panel');
 
-  const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
+  const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain secret-notes-card__bg--warning' });
+
+  card.createDiv({ cls: 'secret-notes__title secret-notes-card__not-encrypted', text: t('未加密') });
 
   card
     .createDiv({ cls: 'secret-notes-card__actions' })
     .createEl('button', { cls: 'mod-cta', text: t('加密') })
     .addEventListener('click', onEncrypt as EventListener);
   // card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: t('未加密') });
-  card.createDiv({ cls: 'secret-notes__meta', text: source });
 };
 
 export const renderEncryptedBlock = (
@@ -79,16 +80,16 @@ export const renderEncryptedBlock = (
 
   const card = el.createDiv({ cls: 'secret-notes-card' });
 
-  const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions
-    .createEl('button', { cls: 'mod-cta', text: t('查看/编辑') })
-    .addEventListener('click', onView as EventListener);
-  actions.createEl('button', { text: t('永久解密') }).addEventListener('click', onDecrypt as EventListener);
-
-  card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--success', text: t('已加密') });
-  card.createDiv({ cls: 'secret-notes-card__badge', text: dtm(payload.date) });
-
   if (payload.title) {
     card.createDiv({ cls: 'secret-notes-card__title', text: payload.title });
   }
+
+  const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
+  actions.createEl('button', { text: t('永久解密') }).addEventListener('click', onDecrypt as EventListener);
+  actions
+    .createEl('button', { cls: 'mod-cta', text: t('查看/编辑') })
+    .addEventListener('click', onView as EventListener);
+
+  // card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--success', text: t('已加密') });
+  // card.createDiv({ cls: 'secret-notes-card__badge', text: dtm(payload.date) });
 };

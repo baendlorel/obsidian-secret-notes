@@ -71,7 +71,6 @@
   background: color-mix(in srgb, var(--text-warning) 14%, transparent);
   color: var(--text-warning);
 }
-
 .secret-notes-card__bg--warning {
   background: color-mix(in srgb, var(--text-warning) 14%, transparent);
 }
@@ -81,10 +80,16 @@
   color: var(--text-success);
 }
 
+.secret-notes-card__not-encrypted {
+  text-align: center;
+  color: var(--text-warning);
+}
+
 .secret-notes-card__title {
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
+  text-align: center;
 }
 
 .secret-notes-card__meta {
@@ -98,15 +103,23 @@
   font-size: 0.9rem;
 }
 
-.secret-notes-card__actions {
+.secret-notes-modal__actions {
   display: flex;
   gap: 0.75rem;
   width: 100%;
 }
 
-.secret-notes-card__actions button:first-child {
-  margin-left: auto;
+.secret-notes-card__actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  justify-content: center;
 }
+
+/* .secret-notes-card__actions button:first-child {
+  margin-left: auto;
+} */
 
 .secret-notes-modal__hint {
   margin-bottom: 0.9rem;

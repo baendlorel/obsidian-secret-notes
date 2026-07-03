@@ -74,7 +74,7 @@ export abstract class SecretModal extends Modal {
     }
 
     // # footer
-    const footer = this.contentEl.createDiv({ cls: 'secret-notes-card__actions' });
+    const footer = this.contentEl.createDiv({ cls: 'secret-notes-modal__actions' });
 
     const noBtn = footer.createEl('button', { text: t('取消'), type: 'button' });
     noBtn.addEventListener('click', () => this.close());
