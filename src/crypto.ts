@@ -1,6 +1,6 @@
 import { SECRET_VERSION } from './consts.js';
 import type { EncryptArgs, NormalizedSecretPayload, SecretPayload } from './types.js';
-import { toArrayBuffer, bytesToBase64, dtm, base64ToBytes } from './utils.js';
+import { toArrayBuffer, bytesToBase64, base64ToBytes } from './utils.js';
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();
@@ -28,7 +28,7 @@ export const encryptSecret = async (args: EncryptArgs): Promise<NormalizedSecret
     title,
     hint,
     encrypted: `${bytesToBase64(iv)}:${bytesToBase64(tag)}:${bytesToBase64(cipherBytes)}`,
-    date: dtm(new Date()),
+    date: new Date().toISOString(),
   };
 };
 

@@ -57,7 +57,7 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--interactive-accent) 14%, transparent);
   color: var(--text-accent);
-  font-size: 0.8rem;
+  font-size: 0.73rem;
   font-weight: 700;
   letter-spacing: 0.03em;
 }
@@ -70,6 +70,10 @@
 .secret-notes-card__badge--warning {
   background: color-mix(in srgb, var(--text-warning) 14%, transparent);
   color: var(--text-warning);
+}
+
+.secret-notes-card__bg--warning {
+  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
 }
 
 .secret-notes-card__badge--success {
@@ -130,9 +134,11 @@
   }
 }
 
-.kasukabe-watermark {
+.kasukabe-watermark__secret-notes {
+  font-size: 0.6rem;
+  bottom: 18px;
+
   position: absolute;
-  /* bottom: 18px; */
   left: 10px;
   color: var(--text-faint);
   font-size: 0.65rem;

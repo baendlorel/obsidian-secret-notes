@@ -1,6 +1,7 @@
 import type { SecretBlock, SecretPayload } from '../types.js';
 import { isFooter, isHeader, SECRET_LANG } from '../consts.js';
 import { t } from '../i18n/index.js';
+import { dtm } from '../utils.js';
 
 export const findSecretBlocks = (content: string): SecretBlock[] => {
   const lines = content.split('\n');
@@ -46,7 +47,7 @@ export const serializeSecretFence = (entry: SecretPayload | string): string =>
 
 export const renderPlainBlock = (el: HTMLElement, { onEncrypt }: { onEncrypt: () => Promise<void> }): void => {
   el.empty();
-  el.addClass('secret-notes-panel');
+  el.addClass('secret-notes-panel secret-notes-card__bg--warning');
 
   const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
 
@@ -73,15 +74,16 @@ export const renderEncryptedBlock = (
 
   const card = el.createDiv({ cls: 'secret-notes-card' });
   card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--success', text: t('已加密') });
+  card.createDiv({ cls: 'secret-notes-card__badge', text: dtm(payload.date) });
 
   if (payload.title) {
     card.createDiv({ cls: 'secret-notes-card__title', text: payload.title });
   }
 
-  card.createDiv({ cls: 'secret-notes-card__meta', text: t('加密时间：$1', payload.date) });
-
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
   actions.createEl('button', { text: t('更换密码') }).addEventListener('click', onChangePassword as EventListener);
   actions.createEl('button', { text: t('永久解密') }).addEventListener('click', onDecrypt as EventListener);
-  actions.createEl('button', { cls: 'mod-cta', text: t('编辑') }).addEventListener('click', onView as EventListener);
+  actions
+    .createEl('button', { cls: 'mod-cta', text: t('查看/编辑') })
+    .addEventListener('click', onView as EventListener);
 };

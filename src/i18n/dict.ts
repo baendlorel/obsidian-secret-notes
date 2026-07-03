@@ -24,7 +24,7 @@ export const dict = {
   未加密: 'Not encrypted',
   已加密: 'Encrypted',
   更换密码: 'Change password',
-  编辑: 'Edit',
+  '查看/编辑': 'View/Edit',
   '加密时间：$1': 'Encrypted at: $1',
   '无法定位当前 secret 代码块': 'Cannot locate the current secret code block',
   无法找到当前文件: 'Cannot find the current file',

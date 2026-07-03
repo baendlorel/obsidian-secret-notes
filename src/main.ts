@@ -57,11 +57,10 @@ export default class SecretNotesPlugin extends Plugin {
         });
       }
 
-      const watermark = el.createDiv({
-        cls: 'kasukabe-watermark',
+      el.createDiv({
+        cls: 'kasukabe-kasukabe-watermark__secret-notes',
         text: `v__VERSION__ © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.`,
       });
-      watermark.setCssStyles({ bottom: '18px' });
     });
   }
 
