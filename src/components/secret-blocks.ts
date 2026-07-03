@@ -44,7 +44,7 @@ export const findSecretBlocks = (content: string): SecretBlock[] => {
 export const serializeSecretFence = (entry: SecretPayload | string): string =>
   `\`\`\`${SECRET_LANG}\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
 
-export const renderPlainBlock = (el: HTMLElement, onEncrypt: () => void): void => {
+export const renderPlainBlock = (el: HTMLElement, { onEncrypt }: { onEncrypt: () => Promise<void> }): void => {
   el.empty();
   el.addClass('secret-notes-panel');
 
@@ -52,16 +52,20 @@ export const renderPlainBlock = (el: HTMLElement, onEncrypt: () => void): void =
 
   card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: t('未加密') });
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions.createEl('button', { cls: 'mod-cta', text: t('加密') }).addEventListener('click', onEncrypt);
+  actions.createEl('button', { cls: 'mod-cta', text: t('加密') }).addEventListener('click', onEncrypt as EventListener);
 };
 
 export const renderEncryptedBlock = (
   el: HTMLElement,
   payload: SecretPayload,
-  handlers: {
-    onView: () => void;
-    onChangePassword: () => void;
-    onDecrypt: () => void;
+  {
+    onView,
+    onChangePassword,
+    onDecrypt,
+  }: {
+    onView: () => Promise<void>;
+    onChangePassword: () => Promise<void>;
+    onDecrypt: () => Promise<void>;
   },
 ): void => {
   el.empty();
@@ -77,7 +81,7 @@ export const renderEncryptedBlock = (
   card.createDiv({ cls: 'secret-notes-card__meta', text: t('加密时间：$1', payload.date) });
 
   const actions = card.createDiv({ cls: 'secret-notes-card__actions' });
-  actions.createEl('button', { text: t('更换密码') }).addEventListener('click', handlers.onChangePassword);
-  actions.createEl('button', { text: t('永久解密') }).addEventListener('click', handlers.onDecrypt);
-  actions.createEl('button', { cls: 'mod-cta', text: t('编辑') }).addEventListener('click', handlers.onView);
+  actions.createEl('button', { text: t('更换密码') }).addEventListener('click', onChangePassword as EventListener);
+  actions.createEl('button', { text: t('永久解密') }).addEventListener('click', onDecrypt as EventListener);
+  actions.createEl('button', { cls: 'mod-cta', text: t('编辑') }).addEventListener('click', onView as EventListener);
 };

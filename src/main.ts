@@ -45,13 +45,15 @@ export default class SecretNotesPlugin extends Plugin {
           },
         });
       } else {
-        renderPlainBlock(el, async () => {
-          const result = await new CryptorModal(this.app).openEncrypt(source);
-          if (!result) {
-            return;
-          }
+        renderPlainBlock(el, {
+          onEncrypt: async () => {
+            const result = await new CryptorModal(this.app).openEncrypt(source);
+            if (!result) {
+              return;
+            }
 
-          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
+            await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
+          },
         });
       }
 
