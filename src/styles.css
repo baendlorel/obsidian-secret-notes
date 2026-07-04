@@ -152,18 +152,6 @@
   justify-content: flex-end;
 }
 
-.secret-notes-modal__btn--danger {
-  margin-right: auto;
-  color: var(--text-on-accent);
-  background-color: var(--text-warning);
-  border-color: var(--text-warning);
-}
-
-.secret-notes-modal__btn--danger:hover {
-  background-color: color-mix(in srgb, var(--text-warning) 80%, black);
-  border-color: color-mix(in srgb, var(--text-warning) 80%, black);
-}
-
 .secret-notes-card__actions {
   margin-top: 20px;
   display: flex;
@@ -200,13 +188,12 @@
 
 .kasukabe-watermark__secret-notes {
   font-size: 0.6rem;
-  bottom: 18px;
-
   position: absolute;
-  left: 10px;
+  bottom: 1px;
+  left: 4px;
   color: var(--text-faint);
   font-size: 0.65rem;
-  opacity: 0.4;
+  opacity: 0.24;
   padding: 0.2rem 0.3rem;
   pointer-events: none;
   user-select: none;

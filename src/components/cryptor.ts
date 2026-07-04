@@ -1,9 +1,4 @@
-import type {
-  FormEdit,
-  FormEncrypt,
-  FormPasswordInput,
-  NormalizedSecretPayload,
-} from '../types.js';
+import type { FormEdit, FormEncrypt, FormPasswordInput, NormalizedSecretPayload } from '../types.js';
 
 import { Notice } from 'obsidian';
 import { t } from '../i18n/index.js';
@@ -67,8 +62,7 @@ export class CryptorModal extends SecretModal {
     const cancelBtn = footer.createEl('button', { text: t('取消'), type: 'button' });
     cancelBtn.addEventListener('click', () => this.close());
 
-    const decryptBtn = footer.createEl('button', { text: t('永久解密'), type: 'button' });
-    decryptBtn.addClass('secret-notes-modal__btn--danger');
+    const decryptBtn = footer.createEl('button', { cls: 'mod-warning', type: 'button', text: t('永久解密') });
     decryptBtn.addEventListener('click', () => {
       this.handoffInProgress = true;
       this.finish<string>(textarea.value);

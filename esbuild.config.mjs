@@ -16,7 +16,7 @@ const staticFiles = [
  */
 function replace(replacement) {
   let content = readFileSync('dist/main.js', 'utf-8');
-  Object.entries(replacement).forEach(([k, v]) => (content = content.replace(k, v)));
+  Object.entries(replacement).forEach(([k, v]) => (content = content.replaceAll(k, v)));
   writeFileSync('dist/main.js', content);
 }
 
