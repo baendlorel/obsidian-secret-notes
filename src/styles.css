@@ -252,7 +252,7 @@
 }
 
 .secret-notes-searcher--visible ~ .secret-notes-searcher__trigger,
-.secret-notes-searcher__wrapper:has(.secret-notes-searcher--visible) .secret-notes-searcher__trigger {
+.secret-notes-searcher__wrapper--active .secret-notes-searcher__trigger {
   display: none;
 }
 

@@ -1,5 +1,5 @@
 // @ts-check
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import esbuild from 'esbuild';
 import pkg from './package.json' with { type: 'json' };
@@ -15,9 +15,13 @@ const staticFiles = [
  * @param {Record<string,any>} replacement
  */
 function replace(replacement) {
-  let content = readFileSync('dist/main.js', 'utf-8');
-  Object.entries(replacement).forEach(([k, v]) => (content = content.replaceAll(k, v)));
-  writeFileSync('dist/main.js', content);
+  readdirSync('dist').forEach((v) => {
+    const p = join('dist', v);
+    console.log('replacing', p);
+    let content = readFileSync(p, 'utf-8');
+    Object.entries(replacement).forEach(([k, v]) => (content = content.replaceAll(k, v)));
+    writeFileSync(p, content);
+  });
 }
 
 function prepareDist() {

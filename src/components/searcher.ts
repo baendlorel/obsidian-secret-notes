@@ -10,6 +10,7 @@ interface SearcherState {
 
 export class Searcher {
   private container: HTMLDivElement;
+  private wrapper: HTMLDivElement;
   private input: HTMLInputElement;
   private countLabel: HTMLSpanElement;
   private textarea: HTMLTextAreaElement;
@@ -21,15 +22,15 @@ export class Searcher {
 
     // Wrap textarea + searcher in a relative-positioned container
     const parent = textarea.parentElement!;
-    const wrapper = parent.createDiv({ cls: 'secret-notes-searcher__wrapper' });
-    wrapper.appendChild(textarea);
+    this.wrapper = parent.createDiv({ cls: 'secret-notes-searcher__wrapper' });
+    this.wrapper.appendChild(textarea);
 
     // Magnifying glass trigger icon (always visible, top-right)
-    const trigger = wrapper.createDiv({ cls: 'secret-notes-searcher__trigger' });
+    const trigger = this.wrapper.createDiv({ cls: 'secret-notes-searcher__trigger' });
     searchIcon(trigger);
 
     // Container (search bar, absolute-positioned top-right, hidden by default)
-    this.container = wrapper.createDiv({ cls: 'secret-notes-searcher' });
+    this.container = this.wrapper.createDiv({ cls: 'secret-notes-searcher' });
 
     // Search input
     this.input = this.container.createEl('input', {
@@ -95,12 +96,14 @@ export class Searcher {
 
   show(): void {
     this.container.classList.add('secret-notes-searcher--visible');
+    this.wrapper.classList.add('secret-notes-searcher__wrapper--active');
     this.input.focus();
     this.input.select();
   }
 
   hide(): void {
     this.container.classList.remove('secret-notes-searcher--visible');
+    this.wrapper.classList.remove('secret-notes-searcher__wrapper--active');
     this.textarea.focus();
   }
 

@@ -63,7 +63,7 @@ export const renderPlainBlock = (
 
   card.createDiv({
     cls: 'kasukabe-watermark__secret-notes',
-    text: `v__VERSION__ © 2026 Kasukabe Tsumugi. All Rights Reserved.`,
+    text: `v__VERSION__ © 2026 Kasukabe Tsumugi.`,
   });
 };
 
@@ -88,6 +88,6 @@ export const renderEncryptedBlock = (
 
   card.createDiv({
     cls: 'kasukabe-watermark____PKG_NAME__',
-    text: `v__VERSION__ © 2026 Kasukabe Tsumugi. All Rights Reserved.`,
+    text: `v__VERSION__ © 2026 Kasukabe Tsumugi.`,
   });
 };
