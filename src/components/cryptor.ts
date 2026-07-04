@@ -56,11 +56,7 @@ export class CryptorModal extends SecretModal {
     textarea.name = 'plaintext';
     textarea.value = plaintext;
 
-    // Footer: 取消 | 永久解密 | 确认
     const footer = this.contentEl.createDiv({ cls: 'secret-notes-modal__actions' });
-
-    const cancelBtn = footer.createEl('button', { text: t('取消'), type: 'button' });
-    cancelBtn.addEventListener('click', () => this.close());
 
     const decryptBtn = footer.createEl('button', { cls: 'mod-warning', type: 'button', text: t('永久解密') });
     decryptBtn.addEventListener('click', () => {
@@ -71,7 +67,6 @@ export class CryptorModal extends SecretModal {
 
     const confirmBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });
     confirmBtn.addEventListener('click', () => {
-      cancelBtn.disabled = true;
       decryptBtn.disabled = true;
       confirmBtn.disabled = true;
 
@@ -90,7 +85,6 @@ export class CryptorModal extends SecretModal {
       })
         .catch(console.error)
         .finally(() => {
-          cancelBtn.disabled = false;
           decryptBtn.disabled = false;
           confirmBtn.disabled = false;
         });
