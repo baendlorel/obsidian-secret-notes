@@ -95,17 +95,16 @@
   color: var(--text-success);
 }
 
-.secret-notes-card__not-encrypted {
-  text-align: center;
-  color: var(--text-warning);
-}
-
 .secret-notes-card__title {
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
-  opacity: 0.72;
+  opacity: 0.32;
+}
+
+.secret-notes-card__plaintext {
+  color: var(--text-warning);
 }
 
 .secret-notes-card__meta {

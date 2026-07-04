@@ -2,6 +2,7 @@ export const dict = {
   输入密码: 'Enter password',
   编辑: 'Edit',
   加密: 'Encrypt',
+  点击以加密: 'Click to encrypt your content',
   永久解密: 'Decrypt permanently',
   验证旧密码: 'Verify current password',
   密码: 'Password',

@@ -54,11 +54,9 @@ export const renderPlainBlock = (
   el.addClass('secret-notes-panel');
 
   const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain secret-notes-card__bg--warning' });
-  card.createDiv({ cls: 'secret-notes-card__badge secret-notes-card__badge--warning', text: t('未加密') });
 
   card
-    .createDiv({ cls: 'secret-notes-card__actions' })
-    .createEl('button', { cls: 'mod-cta', text: t('加密') })
+    .createDiv({ cls: 'secret-notes-card__title secret-notes-card__plaintext', text: t('点击以加密') })
     .addEventListener('click', onEncrypt as EventListener);
 };
 
