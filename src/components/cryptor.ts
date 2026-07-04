@@ -4,7 +4,7 @@ import { Notice } from 'obsidian';
 import { t } from '../i18n/index.js';
 import { decryptSecret } from '../crypto.js';
 import { SecretModal } from './modal.js';
-import { ConfirmModal } from './confirm.js';
+import { secondClickConfirm } from '../utils.js';
 
 export class CryptorModal extends SecretModal {
   private showPasswordForm(payload: NormalizedSecretPayload): void {
@@ -60,8 +60,8 @@ export class CryptorModal extends SecretModal {
     const footer = this.contentEl.createDiv({ cls: 'secret-notes-modal__actions' });
 
     const decryptBtn = footer.createEl('button', { cls: 'mod-warning', type: 'button', text: t('永久解密') });
-    decryptBtn.addEventListener('click', () => {
-      new ConfirmModal(this.app).show(t('确认要永久解密吗？'));
+    secondClickConfirm(decryptBtn, t('确认要永久解密吗？'), () => {
+      // TODO 永久解密的逻辑
     });
 
     const confirmBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });

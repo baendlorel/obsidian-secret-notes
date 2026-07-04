@@ -42,3 +42,21 @@ export const base64ToBytes = (value: string): Uint8Array => {
 
 export const toArrayBuffer = (b: Uint8Array): ArrayBuffer =>
   b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
+
+export const secondClickConfirm = (btn: HTMLButtonElement, message: string, callback: (ev: MouseEvent) => void) => {
+  let isSecondClick = false;
+  const originText = btn.getText();
+  btn.addEventListener('click', (ev) => {
+    if (isSecondClick) {
+      callback(ev);
+    } else {
+      isSecondClick = true;
+      btn.setText(message);
+      btn.textContent = message;
+      setTimeout(() => {
+        isSecondClick = false;
+        btn.setText(originText);
+      }, 3500);
+    }
+  });
+};
