@@ -105,6 +105,7 @@
   font-weight: 700;
   line-height: 1.35;
   text-align: center;
+  opacity: 0.72;
 }
 
 .secret-notes-card__meta {
@@ -156,7 +157,7 @@
 }
 
 .secret-notes-modal--decrypted .modal-content {
-  height: min(82vh, 760px);
+  height: min(82vh, 660px);
 }
 
 .secret-notes-modal__textarea {

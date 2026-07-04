@@ -28,6 +28,15 @@ export abstract class SecretModal extends Modal {
     this.resolver = undefined;
   }
 
+  override onOpen(): void {
+    // Prevent closing the modal by clicking the backdrop
+    this.containerEl.addEventListener('click', (e) => {
+      if (e.target === this.containerEl) {
+        e.stopPropagation();
+      }
+    }, true);
+  }
+
   override onClose(): void {
     this.modalEl.removeClass('secret-notes-modal--decrypted');
     this.titleEl.empty();

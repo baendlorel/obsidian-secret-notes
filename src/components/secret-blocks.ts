@@ -77,9 +77,7 @@ export const renderEncryptedBlock = (
   const card = el.createDiv({ cls: 'secret-notes-card' });
   card.addEventListener('click', onView as EventListener);
 
-  setTooltip(card, t('点击以查看/编辑'), { delay: 50 });
+  setTooltip(card, t('点击查看'), { delay: 50 });
 
-  if (payload.title) {
-    card.createDiv({ cls: 'secret-notes-card__title', text: payload.title });
-  }
+  card.createDiv({ cls: 'secret-notes-card__title', text: payload.title || t('点击查看') });
 };
