@@ -1,5 +1,6 @@
 import { setIcon } from 'obsidian';
 import { t } from '../i18n/index.js';
+import { searchIcon } from '../assets/icons.js';
 
 interface SearcherState {
   query: string;
@@ -23,7 +24,11 @@ export class Searcher {
     const wrapper = parent.createDiv({ cls: 'secret-notes-searcher__wrapper' });
     wrapper.appendChild(textarea);
 
-    // Container (search bar, absolute-positioned top-right)
+    // Magnifying glass trigger icon (always visible, top-right)
+    const trigger = wrapper.createDiv({ cls: 'secret-notes-searcher__trigger' });
+    searchIcon(trigger);
+
+    // Container (search bar, absolute-positioned top-right, hidden by default)
     this.container = wrapper.createDiv({ cls: 'secret-notes-searcher' });
 
     // Search input
@@ -56,7 +61,7 @@ export class Searcher {
     });
     setIcon(closeBtn, 'x');
 
-    // Event listeners
+    // Ctrl+F on textarea opens searcher
     this.keydownHandler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'f') {
         e.preventDefault();
@@ -65,23 +70,18 @@ export class Searcher {
     };
     this.textarea.addEventListener('keydown', this.keydownHandler);
 
+    // Input typing: only update matches, don't move focus
     this.input.addEventListener('input', () => this.search(this.input.value));
+
+    // Keydown on search input: only Esc to hide
     this.input.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'f') {
+      if (e.key === 'Escape') {
         e.preventDefault();
-        this.input.select();
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          this.prev();
-        } else {
-          this.next();
-        }
-      } else if (e.key === 'Escape') {
         this.hide();
       }
     });
 
+    trigger.addEventListener('click', () => this.show());
     prevBtn.addEventListener('click', () => this.prev());
     nextBtn.addEventListener('click', () => this.next());
     closeBtn.addEventListener('click', () => this.hide());
@@ -149,12 +149,14 @@ export class Searcher {
     this.updateCount();
   }
 
-  private selectCurrentMatch(): void {
+  private selectCurrentMatch(focus: boolean = false): void {
     if (this.state.current === -1 || this.state.matches.length === 0) return;
     const start = this.state.matches[this.state.current];
     const end = start + this.state.query.length;
     this.textarea.setSelectionRange(start, end);
-    this.textarea.focus();
+    if (focus) {
+      this.textarea.focus();
+    }
     this.scrollToSelection(start);
   }
 

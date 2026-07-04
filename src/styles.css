@@ -184,6 +184,26 @@
   position: relative;
 }
 
+.secret-notes-searcher__trigger {
+  position: absolute;
+  top: 8px;
+  right: 18px;
+  z-index: 9;
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.15s ease;
+}
+
+.secret-notes-searcher__trigger:hover {
+  opacity: 0.6;
+}
+
+.secret-notes-searcher__trigger-icon {
+  width: 16px;
+  height: 16px;
+  fill: var(--text-muted);
+}
+
 .secret-notes-searcher {
   display: none;
   position: absolute;
@@ -201,6 +221,11 @@
 
 .secret-notes-searcher--visible {
   display: flex;
+}
+
+.secret-notes-searcher--visible ~ .secret-notes-searcher__trigger,
+.secret-notes-searcher__wrapper:has(.secret-notes-searcher--visible) .secret-notes-searcher__trigger {
+  display: none;
 }
 
 .secret-notes-searcher__input {
