@@ -24,7 +24,7 @@ export default class SecretNotesPlugin extends Plugin {
   }
 
   async loadSettings(): Promise<void> {
-    const data: SecretNotesSettings = await this.loadData();
+    const data = (await this.loadData()) as SecretNotesSettings;
     this.settings = { ...DEFAULT_SETTINGS, ...data };
   }
 
