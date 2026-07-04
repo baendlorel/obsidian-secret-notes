@@ -71,7 +71,7 @@
 }
 
 .secret-notes-card:hover {
-  opacity: 0.88;
+  opacity: 0.62;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -337,7 +337,7 @@
   }
 }
 
-.kasukabe-watermark__secret-notes {
+.kasukabe-watermark____PKG_NAME__ {
   font-size: 0.6rem;
   position: absolute;
   bottom: 1px;

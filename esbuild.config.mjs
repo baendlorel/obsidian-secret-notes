@@ -59,5 +59,6 @@ if (watch) {
   replace({
     __VERSION__: pkg.version,
     __YEAR__: new Date().getFullYear(),
+    __PKG_NAME__: pkg.name,
   });
 }

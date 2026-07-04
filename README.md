@@ -1,82 +1,125 @@
 # Obsidian Secret Notes
 
-Keep sensitive content in Obsidian inside a `` ```secretnote `` fenced code block, encrypted with a password. Once encrypted, only ciphertext is written to the file — the plaintext is revealed only after entering the correct password.
+在 Obsidian 里用 `secret` 代码块保存私密内容。插件会把代码块渲染成可点击的秘密卡片；加密后，笔记文件中只保留密文 JSON，明文只会在输入正确密码后临时显示在编辑窗口里。
 
-- 🔒 Local encryption — your password never leaves your device
-- 📝 Encrypted blocks can be edited, re-keyed, or permanently decrypted back to plaintext at any time
-- 🖥️ Works on both desktop and mobile (Obsidian ≥ 1.5.0)
+- 🔒 本地加密：密码不会离开你的设备，也不会被保存。
+- 🧩 极简卡片界面：明文块显示解锁图标，密文块显示锁定图标，点击卡片即可进入下一步。
+- ✍️ 解密后可直接编辑标题、密码提示和正文，并重新加密写回原代码块。
+- 🔎 编辑器内置搜索：在明文编辑区可点击搜索图标，或选中文本后按 `Ctrl+F` 快速查找。
+- ⚙️ 可在插件设置中修改要识别的代码块名称，默认是 `secret`。
 
-## Quick Start
+## 界面与功能
 
-Write a `secret` code block in any note and put the content you want to protect inside it:
+### 1. 明文块与密文块
+
+![secret-and-cleartext](assets/secret-and-cleartext.png)
+
+`secret` 代码块会在阅读视图 / Live Preview 中渲染为卡片：
+
+- 上方的解锁图标表示当前代码块仍是明文，点击后进入加密流程。
+- 下方的锁定图标表示当前代码块已经加密，点击后输入密码查看和编辑。
+- 卡片左下角会显示插件版本水印，便于确认当前渲染来源。
+
+### 2. 输入密码
+
+![input-password](assets/input-password.png)
+
+点击已加密卡片后，会弹出密码输入窗口：
+
+- 输入正确密码后进入明文编辑器。
+- 如果加密时填写了密码提示，提示会显示在密码输入框中。
+- 密码错误时不会展示任何明文内容。
+
+### 3. 明文编辑器
+
+![cleartext-edtor](assets/cleartext-edtor.png)
+
+验证通过后会打开新的明文编辑界面：
+
+- 顶部可修改 **标题** 与 **密码提示**。
+- 中间的大文本框用于编辑解密后的正文。
+- 右上角搜索栏可查找正文内容；支持上一个 / 下一个跳转，点击跳转时会闪烁定位。
+- 点击 **确认** 会使用当前密码重新加密并写回原代码块。
+- 点击 **永久解密** 需要二次确认；确认后会把明文写回 `secret` 代码块中，之后可再次点击卡片重新加密。
+
+## 快速开始
+
+在任意笔记中写入一个 `secret` 代码块：
 
 <pre>
-```secretnote
-some sensitive content
+```secret
+这里写需要保护的内容
 ```
 </pre>
 
-In reading view or live preview, it renders as a card:
+切换到阅读视图或 Live Preview 后，点击解锁卡片，填写密码、确认密码，以及可选的标题和密码提示。确认后，文件中的内容会变为类似下面的密文 JSON：
 
-- **Not encrypted** (yellow badge): click **Encrypt**, enter a password (plus an optional title and password hint), and the plaintext is encrypted back into the same block.
-- **Encrypted** (green badge): shows the title and encryption date, with **Edit**, **Decrypt permanently**, and **Change password** actions.
+```json
+{"v":1,"title":"","hint":"","encrypted":"<iv>:<tag>:<ciphertext>","date":"2026-07-04T00:00:00.000Z"}
+```
 
-## Operations
+之后再次点击锁定卡片，输入密码即可查看和编辑明文。
 
-| Action              | Entry point                                  | Flow                                                                                                                                           |
-| ------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Encrypt             | **Encrypt** on an unencrypted card           | Enter password + confirm (optional title, hint) → plaintext is encrypted and saved back                                                        |
-| Edit / View         | **Edit** on an encrypted card                | Verify password → edit title / hint / plaintext in a form → re-encrypt and save back                                                           |
-| Change password     | **Change password** on an encrypted card     | Verify old password → set a new password → re-encrypt with the new password                                                                    |
-| Decrypt permanently | **Decrypt permanently** on an encrypted card | Verify password → decrypt to plaintext, **placed back inside the `secret` fence** (returns to the unencrypted state, ready to be re-encrypted) |
+## 操作说明
 
-> Write-back: in source / live-preview mode the editor is modified directly; in reading view the file is written via `vault.modify` — so the ciphertext always lands back in the file.
+| 操作 | 入口 | 结果 |
+| --- | --- | --- |
+| 加密 | 点击明文卡片 | 输入密码和确认密码后，将明文加密写回当前代码块 |
+| 查看 / 编辑 | 点击密文卡片 | 输入密码后打开明文编辑器，可修改标题、提示和正文 |
+| 重新保存 | 明文编辑器的 **确认** | 使用当前密码重新加密并覆盖原代码块 |
+| 永久解密 | 明文编辑器的 **永久解密** | 二次确认后把明文写回 `secret` 代码块 |
+| 搜索正文 | 明文编辑器右上角搜索，或在正文中按 `Ctrl+F` | 在大文本框内查找、跳转并闪烁定位匹配项 |
 
-## How Encryption Works
+> 写回方式：在源码 / Live Preview 编辑状态下会直接替换当前编辑器中的代码块；在阅读视图中会通过 Obsidian vault API 修改文件。
 
-- Algorithm: **AES-256-GCM** (authenticated encryption), performed locally via the Web Crypto API.
-- Key: derived from your password with SHA-256. It is **never stored or uploaded**.
-- Storage format: the code block content is a JSON object:
-  ```json
-  {
-    "v": 1,
-    "title": "optional title",
-    "hint": "optional password hint",
-    "encrypted": "<base64(iv)>:<base64(tag)>:<base64(ciphertext)>",
-    "date": "encryption timestamp"
-  }
-  ```
+## 设置
 
-> ⚠️ Because the password is not stored, **ciphertext cannot be recovered if the password is forgotten**. Use a strong password and keep it safe. The password hint is shown as a placeholder in the password field — don't put the password itself in the hint.
+在 **Settings → Community plugins → Secret Notes** 中可以修改 **块名称**。
 
-## Installation
+默认块名称是 `secret`。如果改成其他名称，例如 `private`，插件之后会处理：
 
-### Manual install
+<pre>
+```private
+需要保护的内容
+```
+</pre>
 
-1. Download the latest release from the [GitHub repository](https://github.com/baendlorel/).
-2. Place `main.js`, `manifest.json`, and `styles.css` into your vault at:
+## 加密说明
+
+- 算法：**AES-256-GCM**，通过 Web Crypto API 在本地执行。
+- 密钥：由密码经 SHA-256 派生，不会存储或上传。
+- 存储格式：加密后的代码块内容是 JSON，包含版本、标题、密码提示、密文和加密时间。
+
+> ⚠️ 密码无法找回。忘记密码后，密文内容无法恢复。密码提示只应填写能帮助你回忆的线索，不要直接写入密码本身。
+
+## 安装
+
+### 手动安装
+
+1. 下载本仓库构建产物或 Release 中的 `main.js`、`manifest.json`、`styles.css`。
+2. 放入你的 Obsidian vault：
    ```
    <vault>/.obsidian/plugins/obsidian-secret-notes/
    ```
-3. In Obsidian, open **Settings → Community plugins**, disable safe mode, and enable **Secret Notes**.
+3. 打开 Obsidian：**Settings → Community plugins**，启用 **Secret Notes**。
 
-## Development
+## 开发
 
-The entry point is `src/main.ts`; build artifacts are written to `dist/`.
+入口文件是 `src/main.ts`，构建产物输出到 `dist/`。
 
 ```bash
 pnpm install
-pnpm build      # one-shot build into dist/
-pnpm dev        # watch mode
+pnpm build      # 构建到 dist/
+pnpm dev        # watch 模式
 ```
 
-The build produces:
+构建结果包括：
 
 - `dist/main.js`
 - `dist/manifest.json`
 - `dist/styles.css`
 
-Copy those three files into your vault's `.obsidian/plugins/obsidian-secret-notes/` to load and debug the plugin in Obsidian.
+将这三个文件复制到 vault 的 `.obsidian/plugins/obsidian-secret-notes/` 中即可在 Obsidian 里加载调试。
 
 ## License
 
