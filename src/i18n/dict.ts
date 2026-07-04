@@ -35,4 +35,8 @@ export const dict = {
   '确认要永久解密吗？': 'Confirm permanent decryption',
   '解密后内容将以明文保存，此操作不可撤销。':
     'After decryption, the content will be saved as plaintext. This action cannot be undone.',
+  搜索: 'Search',
+  上一个: 'Previous',
+  下一个: 'Next',
+  无结果: 'No results',
 };
