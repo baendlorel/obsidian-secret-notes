@@ -105,7 +105,7 @@ export class Searcher {
     this.textarea.focus();
   }
 
-  private search(query: string): void {
+  private search(query: string, direction?: 'next' | 'prev'): void {
     this.state.query = query;
 
     if (!query) {
@@ -132,28 +132,36 @@ export class Searcher {
     if (matches.length === 0) {
       this.state.current = -1;
     } else {
-      // Find the first match at or after the current cursor position
-      const cursorPos = this.textarea.selectionStart;
-      const nextIdx = matches.findIndex((m) => m >= cursorPos);
-      this.state.current = nextIdx === -1 ? 0 : nextIdx;
-      this.selectCurrentMatch();
+      if (direction) {
+        const prevIdx = this.state.current;
+        if (direction === 'next') {
+          this.state.current = (prevIdx + 1) % matches.length;
+        } else {
+          this.state.current = (prevIdx - 1 + matches.length) % matches.length;
+        }
+        this.selectCurrentMatch(true);
+      } else {
+        // Find the first match at or after the current cursor position
+        const cursorPos = this.textarea.selectionStart;
+        const nextIdx = matches.findIndex((m) => m >= cursorPos);
+        this.state.current = nextIdx === -1 ? 0 : nextIdx;
+        this.selectCurrentMatch();
+      }
     }
 
     this.updateCount();
   }
 
   next(): void {
-    if (this.state.matches.length === 0) return;
-    this.state.current = (this.state.current + 1) % this.state.matches.length;
-    this.selectCurrentMatch(true);
-    this.updateCount();
+    const query = this.input.value;
+    if (!query) return;
+    this.search(query, 'next');
   }
 
   prev(): void {
-    if (this.state.matches.length === 0) return;
-    this.state.current = (this.state.current - 1 + this.state.matches.length) % this.state.matches.length;
-    this.selectCurrentMatch(true);
-    this.updateCount();
+    const query = this.input.value;
+    if (!query) return;
+    this.search(query, 'prev');
   }
 
   private selectCurrentMatch(focus: boolean = false): void {
