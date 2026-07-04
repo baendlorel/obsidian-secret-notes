@@ -47,7 +47,8 @@ export abstract class SecretModal extends Modal {
     // # input elements
     for (let i = 0; i < inputs.length; i++) {
       const o = inputs[i];
-      const labelEl = form.createDiv({ cls: 'secret-notes__field-label' });
+      const control = form.createDiv({ cls: 'secret-notes__form-control' });
+      const labelEl = control.createDiv({ cls: 'secret-notes__field-label' });
       labelEl.createSpan({ text: o.label });
       if (o.required) {
         labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
@@ -55,10 +56,10 @@ export abstract class SecretModal extends Modal {
 
       let field: HTMLTextAreaElement | HTMLInputElement;
       if (o.type === 'textarea') {
-        field = form.createEl('textarea');
+        field = control.createEl('textarea');
         field.className = 'secret-notes-modal__textarea';
       } else {
-        field = form.createEl('input');
+        field = control.createEl('input');
         field.className = 'secret-notes-modal__input';
         field.type = o.type ?? 'text';
       }

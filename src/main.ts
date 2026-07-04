@@ -25,15 +25,8 @@ export default class SecretNotesPlugin extends Plugin {
               return;
             }
 
+            // result is either NormalizedSecretPayload (re-encrypt) or string (permanent decrypt plaintext)
             await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
-          },
-          onDecrypt: async () => {
-            const plaintext = await new CryptorModal(this.app).openDecrypt(payload);
-            if (plaintext === null) {
-              return;
-            }
-
-            await this.replaceSecretBlock(ctx, el, serializeSecretFence(plaintext));
           },
         });
       } else {

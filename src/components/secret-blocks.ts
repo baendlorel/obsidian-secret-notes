@@ -67,10 +67,8 @@ export const renderEncryptedBlock = (
   payload: SecretPayload,
   {
     onView,
-    onDecrypt,
   }: {
     onView: () => Promise<void>;
-    onDecrypt: () => Promise<void>;
   },
 ): void => {
   el.empty();
