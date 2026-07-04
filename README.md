@@ -1,125 +1,127 @@
 # Obsidian Secret Notes
 
-在 Obsidian 里用 `secret` 代码块保存私密内容。插件会把代码块渲染成可点击的秘密卡片；加密后，笔记文件中只保留密文 JSON，明文只会在输入正确密码后临时显示在编辑窗口里。
+[中文文档](README.zh.md)
 
-- 🔒 本地加密：密码不会离开你的设备，也不会被保存。
-- 🧩 极简卡片界面：明文块显示解锁图标，密文块显示锁定图标，点击卡片即可进入下一步。
-- ✍️ 解密后可直接编辑标题、密码提示和正文，并重新加密写回原代码块。
-- 🔎 编辑器内置搜索：在明文编辑区可点击搜索图标，或选中文本后按 `Ctrl+F` 快速查找。
-- ⚙️ 可在插件设置中修改要识别的代码块名称，默认是 `secret`。
+Save private content in Obsidian with a `secret` code block. The plugin renders the block as a clickable secret card; after encryption, only ciphertext JSON is stored in your note, and plaintext is shown temporarily only after the correct password is entered.
 
-## 界面与功能
+- 🔒 Local encryption: your password never leaves your device and is never stored.
+- 🧩 Minimal card UI: plaintext blocks show an unlock icon, encrypted blocks show a lock icon, and clicking the card starts the next action.
+- ✍️ After decrypting, you can edit the title, password hint, and body, then re-encrypt the block in place.
+- 🔎 Built-in editor search: click the search icon in the plaintext editor, or select text and press `Ctrl+F` to search quickly.
+- ⚙️ The processed code block name is configurable in plugin settings. The default is `secret`.
 
-### 1. 明文块与密文块
+## Interface and features
+
+### 1. Plaintext and encrypted blocks
 
 ![secret-and-cleartext](assets/secret-and-cleartext.png)
 
-`secret` 代码块会在阅读视图 / Live Preview 中渲染为卡片：
+A `secret` code block is rendered as a card in Reading view / Live Preview:
 
-- 上方的解锁图标表示当前代码块仍是明文，点击后进入加密流程。
-- 下方的锁定图标表示当前代码块已经加密，点击后输入密码查看和编辑。
-- 卡片左下角会显示插件版本水印，便于确认当前渲染来源。
+- The unlock icon means the block is still plaintext. Click it to start encryption.
+- The lock icon means the block is encrypted. Click it to enter the password and view/edit the content.
+- The plugin version watermark is shown in the lower-left corner of each card, making the renderer easy to identify.
 
-### 2. 输入密码
+### 2. Password input
 
 ![input-password](assets/input-password.png)
 
-点击已加密卡片后，会弹出密码输入窗口：
+After clicking an encrypted card, a password modal opens:
 
-- 输入正确密码后进入明文编辑器。
-- 如果加密时填写了密码提示，提示会显示在密码输入框中。
-- 密码错误时不会展示任何明文内容。
+- Enter the correct password to open the plaintext editor.
+- If a password hint was saved during encryption, it appears in the password input placeholder.
+- Plaintext is never shown when the password is incorrect.
 
-### 3. 明文编辑器
+### 3. Plaintext editor
 
 ![cleartext-edtor](assets/cleartext-edtor.png)
 
-验证通过后会打开新的明文编辑界面：
+After verification, the plaintext editor opens:
 
-- 顶部可修改 **标题** 与 **密码提示**。
-- 中间的大文本框用于编辑解密后的正文。
-- 右上角搜索栏可查找正文内容；支持上一个 / 下一个跳转，点击跳转时会闪烁定位。
-- 点击 **确认** 会使用当前密码重新加密并写回原代码块。
-- 点击 **永久解密** 需要二次确认；确认后会把明文写回 `secret` 代码块中，之后可再次点击卡片重新加密。
+- Edit the **Title** and **Password hint** at the top.
+- Edit decrypted body content in the large text area.
+- Use the search bar in the upper-right corner to search the body; previous/next navigation is supported, and jumped matches flash for easier positioning.
+- Click **Confirm** to re-encrypt with the current password and write back to the original code block.
+- Click **Decrypt permanently** and confirm the second-click prompt to write plaintext back into the `secret` code block. You can encrypt it again later by clicking the plaintext card.
 
-## 快速开始
+## Quick start
 
-在任意笔记中写入一个 `secret` 代码块：
+Create a `secret` code block in any note:
 
 <pre>
 ```secret
-这里写需要保护的内容
+Put private content here
 ```
 </pre>
 
-切换到阅读视图或 Live Preview 后，点击解锁卡片，填写密码、确认密码，以及可选的标题和密码提示。确认后，文件中的内容会变为类似下面的密文 JSON：
+Switch to Reading view or Live Preview, click the unlock card, then enter the password, confirmation password, and optional title/hint. After confirmation, the file content becomes ciphertext JSON similar to:
 
 ```json
 {"v":1,"title":"","hint":"","encrypted":"<iv>:<tag>:<ciphertext>","date":"2026-07-04T00:00:00.000Z"}
 ```
 
-之后再次点击锁定卡片，输入密码即可查看和编辑明文。
+Click the locked card again and enter the password to view or edit the plaintext.
 
-## 操作说明
+## Operations
 
-| 操作 | 入口 | 结果 |
+| Action | Entry point | Result |
 | --- | --- | --- |
-| 加密 | 点击明文卡片 | 输入密码和确认密码后，将明文加密写回当前代码块 |
-| 查看 / 编辑 | 点击密文卡片 | 输入密码后打开明文编辑器，可修改标题、提示和正文 |
-| 重新保存 | 明文编辑器的 **确认** | 使用当前密码重新加密并覆盖原代码块 |
-| 永久解密 | 明文编辑器的 **永久解密** | 二次确认后把明文写回 `secret` 代码块 |
-| 搜索正文 | 明文编辑器右上角搜索，或在正文中按 `Ctrl+F` | 在大文本框内查找、跳转并闪烁定位匹配项 |
+| Encrypt | Click a plaintext card | Enter password and confirmation password, then encrypt and write back to the current block |
+| View / Edit | Click an encrypted card | Enter password to open the plaintext editor, where title, hint, and body can be changed |
+| Save again | **Confirm** in the plaintext editor | Re-encrypt with the current password and overwrite the original block |
+| Decrypt permanently | **Decrypt permanently** in the plaintext editor | After second-click confirmation, write plaintext back into the `secret` code block |
+| Search body | Search in the upper-right of the plaintext editor, or press `Ctrl+F` in the body | Find, navigate, and flash-highlight matches inside the text area |
 
-> 写回方式：在源码 / Live Preview 编辑状态下会直接替换当前编辑器中的代码块；在阅读视图中会通过 Obsidian vault API 修改文件。
+> Write-back behavior: in source / Live Preview editing state, the current editor block is replaced directly; in Reading view, the file is modified through the Obsidian vault API.
 
-## 设置
+## Settings
 
-在 **Settings → Community plugins → Secret Notes** 中可以修改 **块名称**。
+Open **Settings → Community plugins → Secret Notes** to change **Block name**.
 
-默认块名称是 `secret`。如果改成其他名称，例如 `private`，插件之后会处理：
+The default block name is `secret`. If you change it to `private`, for example, the plugin will process:
 
 <pre>
 ```private
-需要保护的内容
+Private content
 ```
 </pre>
 
-## 加密说明
+## Encryption details
 
-- 算法：**AES-256-GCM**，通过 Web Crypto API 在本地执行。
-- 密钥：由密码经 SHA-256 派生，不会存储或上传。
-- 存储格式：加密后的代码块内容是 JSON，包含版本、标题、密码提示、密文和加密时间。
+- Algorithm: **AES-256-GCM**, executed locally through the Web Crypto API.
+- Key: derived from the password with SHA-256. It is not stored or uploaded.
+- Storage format: encrypted block content is JSON containing version, title, password hint, ciphertext, and encryption date.
 
-> ⚠️ 密码无法找回。忘记密码后，密文内容无法恢复。密码提示只应填写能帮助你回忆的线索，不要直接写入密码本身。
+> ⚠️ Passwords cannot be recovered. If you forget the password, the ciphertext cannot be restored. The password hint should be only a reminder; do not put the actual password in it.
 
-## 安装
+## Installation
 
-### 手动安装
+### Manual install
 
-1. 下载本仓库构建产物或 Release 中的 `main.js`、`manifest.json`、`styles.css`。
-2. 放入你的 Obsidian vault：
+1. Download `main.js`, `manifest.json`, and `styles.css` from this repository's build output or Release.
+2. Place them into your Obsidian vault:
    ```
    <vault>/.obsidian/plugins/obsidian-secret-notes/
    ```
-3. 打开 Obsidian：**Settings → Community plugins**，启用 **Secret Notes**。
+3. In Obsidian, open **Settings → Community plugins** and enable **Secret Notes**.
 
-## 开发
+## Development
 
-入口文件是 `src/main.ts`，构建产物输出到 `dist/`。
+The entry point is `src/main.ts`, and build artifacts are written to `dist/`.
 
 ```bash
 pnpm install
-pnpm build      # 构建到 dist/
-pnpm dev        # watch 模式
+pnpm build      # build into dist/
+pnpm dev        # watch mode
 ```
 
-构建结果包括：
+Build output includes:
 
 - `dist/main.js`
 - `dist/manifest.json`
 - `dist/styles.css`
 
-将这三个文件复制到 vault 的 `.obsidian/plugins/obsidian-secret-notes/` 中即可在 Obsidian 里加载调试。
+Copy these three files into `.obsidian/plugins/obsidian-secret-notes/` in your vault to load and debug the plugin in Obsidian.
 
 ## License
 
