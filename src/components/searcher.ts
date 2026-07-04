@@ -1,17 +1,18 @@
+import { setIcon } from 'obsidian';
 import { t } from '../i18n/index.js';
 
-interface SearchState {
+interface SearcherState {
   query: string;
   matches: number[];
   current: number;
 }
 
-export class TextareaSearcher {
+export class Searcher {
   private container: HTMLDivElement;
   private input: HTMLInputElement;
   private countLabel: HTMLSpanElement;
   private textarea: HTMLTextAreaElement;
-  private state: SearchState = { query: '', matches: [], current: -1 };
+  private state: SearcherState = { query: '', matches: [], current: -1 };
   private keydownHandler: (e: KeyboardEvent) => void;
 
   constructor(textarea: HTMLTextAreaElement) {
@@ -37,25 +38,23 @@ export class TextareaSearcher {
     // Previous button
     const prevBtn = this.container.createEl('button', {
       cls: 'secret-notes-searcher__btn',
-      type: 'button',
-      text: '▲',
-      attr: { title: t('上一个') },
+      attr: { type: 'button', title: t('上一个') },
     });
+    setIcon(prevBtn, 'chevron-up');
 
     // Next button
     const nextBtn = this.container.createEl('button', {
       cls: 'secret-notes-searcher__btn',
-      type: 'button',
-      text: '▼',
-      attr: { title: t('下一个') },
+      attr: { type: 'button', title: t('下一个') },
     });
+    setIcon(nextBtn, 'chevron-down');
 
     // Close button
     const closeBtn = this.container.createEl('button', {
       cls: 'secret-notes-searcher__btn secret-notes-searcher__btn--close',
-      type: 'button',
-      text: '✕',
+      attr: { type: 'button' },
     });
+    setIcon(closeBtn, 'x');
 
     // Event listeners
     this.keydownHandler = (e: KeyboardEvent) => {
@@ -68,7 +67,10 @@ export class TextareaSearcher {
 
     this.input.addEventListener('input', () => this.search(this.input.value));
     this.input.addEventListener('keydown', (e: KeyboardEvent) => {
-      if (e.key === 'Enter') {
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        this.input.select();
+      } else if (e.key === 'Enter') {
         e.preventDefault();
         if (e.shiftKey) {
           this.prev();

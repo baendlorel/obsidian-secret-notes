@@ -5,7 +5,7 @@ import { t } from '../i18n/index.js';
 import { decryptSecret } from '../crypto.js';
 import { SecretModal } from './modal.js';
 import { secondClickConfirm } from '../utils.js';
-import { TextareaSearcher } from './searcher.js';
+import { Searcher } from './searcher.js';
 
 export class CryptorModal extends SecretModal {
   private showPasswordForm(payload: NormalizedSecretPayload): void {
@@ -57,7 +57,7 @@ export class CryptorModal extends SecretModal {
     const textarea = form.createEl('textarea', { cls: 'secret-notes-modal__textarea' });
     textarea.name = 'plaintext';
     textarea.value = plaintext;
-    new TextareaSearcher(textarea);
+    new Searcher(textarea);
 
     const footer = this.contentEl.createDiv({ cls: 'secret-notes-modal__actions' });
 

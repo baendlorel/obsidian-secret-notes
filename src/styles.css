@@ -232,19 +232,22 @@
   justify-content: center;
   width: 22px;
   height: 22px;
-  padding: 0;
-  font-size: 0.75rem;
+  padding: 2px;
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
   background: var(--background-secondary);
   color: var(--text-muted);
   cursor: pointer;
-  line-height: 1;
 }
 
 .secret-notes-searcher__btn:hover {
   background: var(--background-modifier-hover);
   color: var(--text-normal);
+}
+
+.secret-notes-searcher__btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 .secret-notes-searcher__btn--close {
