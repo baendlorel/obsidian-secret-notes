@@ -61,7 +61,9 @@ export class CryptorModal extends SecretModal {
 
     const decryptBtn = footer.createEl('button', { cls: 'mod-warning', type: 'button', text: t('永久解密') });
     secondClickConfirm(decryptBtn, t('确认要永久解密吗？'), () => {
-      // TODO 永久解密的逻辑
+      this.handoffInProgress = true;
+      this.finish(textarea.value.trim());
+      this.close();
     });
 
     const confirmBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });
