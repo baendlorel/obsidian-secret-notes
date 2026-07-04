@@ -32,7 +32,7 @@ export const dict = {
   无法找到当前文件: 'Cannot find the current file',
   块名称: 'Block name',
   决定哪种代码块会被本插件读取: 'Determines which code block type will be processed by this plugin',
-  '确认要永久解密吗？': 'Confirm permanent decryption',
+  确认永久解密: 'Decrypt Permanently',
   '解密后内容将以明文保存，此操作不可撤销。':
     'After decryption, the content will be saved as plaintext. This action cannot be undone.',
   搜索: 'Search',
