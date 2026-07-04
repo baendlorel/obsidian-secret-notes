@@ -278,6 +278,25 @@
   margin-left: 2px;
 }
 
+@keyframes secret-notes-flash {
+  0% {
+    background: var(--interactive-accent);
+    opacity: 0.4;
+  }
+  100% {
+    background: transparent;
+    opacity: 0;
+  }
+}
+
+.secret-notes-searcher__flash {
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  animation: secret-notes-flash 1s ease-out forwards;
+}
+
 @media (max-width: 640px) {
   .secret-notes__form-row {
     flex-direction: column;

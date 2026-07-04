@@ -65,6 +65,13 @@ export class Searcher {
     this.keydownHandler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'f') {
         e.preventDefault();
+        const selectionStart = this.textarea.selectionStart;
+        const selectionEnd = this.textarea.selectionEnd;
+        if (selectionStart !== selectionEnd) {
+          const selected = this.textarea.value.substring(selectionStart, selectionEnd);
+          this.input.value = selected;
+          this.search(selected);
+        }
         this.show();
       }
     };
@@ -138,14 +145,14 @@ export class Searcher {
   next(): void {
     if (this.state.matches.length === 0) return;
     this.state.current = (this.state.current + 1) % this.state.matches.length;
-    this.selectCurrentMatch();
+    this.selectCurrentMatch(true);
     this.updateCount();
   }
 
   prev(): void {
     if (this.state.matches.length === 0) return;
     this.state.current = (this.state.current - 1 + this.state.matches.length) % this.state.matches.length;
-    this.selectCurrentMatch();
+    this.selectCurrentMatch(true);
     this.updateCount();
   }
 
@@ -158,6 +165,22 @@ export class Searcher {
       this.textarea.focus();
     }
     this.scrollToSelection(start);
+    if (focus) {
+      this.flash(start);
+    }
+  }
+
+  private flash(pos: number): void {
+    const textBefore = this.textarea.value.substring(0, pos);
+    const lineNumber = textBefore.split('\n').length - 1;
+    const lineHeight = parseFloat(getComputedStyle(this.textarea).lineHeight) || 20;
+    const y = lineNumber * lineHeight - this.textarea.scrollTop + 5;
+
+    const wrapper = this.textarea.parentElement!;
+    const flash = wrapper.createDiv({ cls: 'secret-notes-searcher__flash' });
+    flash.style.top = `${y}px`;
+    flash.style.height = `${lineHeight}px`;
+    flash.addEventListener('animationend', () => flash.remove());
   }
 
   private scrollToSelection(pos: number): void {
