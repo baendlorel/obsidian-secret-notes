@@ -3,23 +3,6 @@
   position: relative;
 }
 
-.secret-notes-panel--plain {
-  color: var(--text-warning);
-  fill: var(--text-warning);
-  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
-  padding: 1rem;
-  border-radius: 14px;
-}
-
-.secret-notes-panel--plain .secret-notes-card {
-  background: transparent;
-  border-color: var(--text-warning);
-}
-
-.secret-notes-panel--plain .kasukabe-watermark__secret-notes {
-  color: var(--text-warning);
-}
-
 .secret-notes__encrypt-form {
   margin-top: 20px;
   margin-bottom: 30px;
@@ -78,6 +61,19 @@
   border: 1px solid color-mix(in srgb, var(--background-modifier-border) 70%, var(--interactive-accent) 30%);
   border-radius: 14px;
   background: linear-gradient(180deg, var(--background-secondary) 0%, var(--background-primary-alt) 100%);
+  position: relative;
+}
+
+.secret-notes-card--warning {
+  color: var(--text-warning);
+  fill: var(--text-warning);
+  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
+  border-style: dashed;
+  border-color: var(--text-warning);
+}
+
+.secret-notes-card--warning .kasukabe-watermark__secret-notes {
+  color: var(--text-warning);
 }
 
 .secret-notes-card--plain {

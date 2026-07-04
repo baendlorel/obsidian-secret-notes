@@ -58,11 +58,7 @@ export default class SecretNotesPlugin extends Plugin {
     });
   }
 
-  private processSecretBlock(
-    source: string,
-    el: HTMLElement,
-    ctx: MarkdownPostProcessorContext,
-  ): void {
+  private processSecretBlock(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
     const payload = parseSecretPayload(source);
 
     if (payload) {
@@ -88,11 +84,6 @@ export default class SecretNotesPlugin extends Plugin {
         },
       });
     }
-
-    el.createDiv({
-      cls: 'kasukabe-watermark__secret-notes',
-      text: `v__VERSION__`, //  © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.
-    });
   }
 
   private async replaceSecretBlock(

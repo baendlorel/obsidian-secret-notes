@@ -53,24 +53,24 @@ export const renderPlainBlock = (
 ): void => {
   el.empty();
   el.addClass('secret-notes-panel');
-  el.addClass('secret-notes-panel--plain');
 
-  const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
+  const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain secret-notes-card--warning' });
   setTooltip(card, t('点击以加密'), { delay: 50 });
 
   const title = card.createDiv({ cls: 'secret-notes-card__title secret-notes-card__plaintext' });
   unlockIcon(title);
   title.addEventListener('click', onEncrypt as EventListener);
+
+  card.createDiv({
+    cls: 'kasukabe-watermark__secret-notes',
+    text: `v__VERSION__`,
+  });
 };
 
 export const renderEncryptedBlock = (
   el: HTMLElement,
   payload: SecretPayload,
-  {
-    onView,
-  }: {
-    onView: () => Promise<void>;
-  },
+  { onView }: { onView: () => Promise<void> },
 ): void => {
   el.empty();
   el.addClass('secret-notes-panel');
@@ -85,4 +85,9 @@ export const renderEncryptedBlock = (
   if (payload.title) {
     title.createSpan({ text: payload.title });
   }
+
+  card.createDiv({
+    cls: 'kasukabe-watermark__secret-notes',
+    text: `v__VERSION__`,
+  });
 };
