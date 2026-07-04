@@ -63,12 +63,15 @@
   background: linear-gradient(180deg, var(--background-secondary) 0%, var(--background-primary-alt) 100%);
   position: relative;
   cursor: pointer;
+  opacity: 1;
   transition:
     transform 0.1s ease,
-    box-shadow 0.1s ease;
+    box-shadow 0.1s ease,
+    opacity 0.15s ease;
 }
 
 .secret-notes-card:hover {
+  opacity: 0.88;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
