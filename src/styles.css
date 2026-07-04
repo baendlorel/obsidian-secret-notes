@@ -96,6 +96,10 @@
 }
 
 .secret-notes-card__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   font-size: 1rem;
   font-weight: 700;
   line-height: 1.35;
@@ -103,8 +107,17 @@
   opacity: 0.32;
 }
 
+.secret-notes-card__icon {
+  margin: 12px;
+  display: inline-flex;
+  align-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
 .secret-notes-card__plaintext {
   color: var(--text-warning);
+  fill: var(--text-warning);
 }
 
 .secret-notes-card__meta {

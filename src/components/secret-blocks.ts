@@ -2,6 +2,7 @@ import type { SecretBlock, SecretPayload } from '../types.js';
 import { isFooter, isHeader, SECRET_LANG } from '../consts.js';
 import { t } from '../i18n/index.js';
 import { setTooltip } from 'obsidian';
+import { lockIcon, unlockIcon } from '../assets/icons.js';
 
 export const findSecretBlocks = (content: string): SecretBlock[] => {
   const lines = content.split('\n');
@@ -47,17 +48,18 @@ export const serializeSecretFence = (entry: SecretPayload | string): string =>
 
 export const renderPlainBlock = (
   el: HTMLElement,
-  source: string,
+  _source: string,
   { onEncrypt }: { onEncrypt: () => Promise<void> },
 ): void => {
   el.empty();
   el.addClass('secret-notes-panel');
 
   const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain secret-notes-card__bg--warning' });
+  setTooltip(card, t('点击以加密'), { delay: 50 });
 
-  card
-    .createDiv({ cls: 'secret-notes-card__title secret-notes-card__plaintext', text: t('点击以加密') })
-    .addEventListener('click', onEncrypt as EventListener);
+  const title = card.createDiv({ cls: 'secret-notes-card__title secret-notes-card__plaintext' });
+  unlockIcon(title);
+  title.addEventListener('click', onEncrypt as EventListener);
 };
 
 export const renderEncryptedBlock = (
@@ -77,5 +79,9 @@ export const renderEncryptedBlock = (
 
   setTooltip(card, t('点击查看'), { delay: 50 });
 
-  card.createDiv({ cls: 'secret-notes-card__title', text: payload.title || t('点击查看') });
+  const title = card.createDiv({ cls: 'secret-notes-card__title' });
+  lockIcon(title);
+  if (payload.title) {
+    title.createSpan({ text: payload.title });
+  }
 };
