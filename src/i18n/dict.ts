@@ -30,4 +30,6 @@ export const dict = {
   '加密时间：$1': 'Encrypted at: $1',
   '无法定位当前 secret 代码块': 'Cannot locate the current secret code block',
   无法找到当前文件: 'Cannot find the current file',
+  块名称: 'Block name',
+  '决定哪种代码块会被本插件读取': 'Determines which code block type will be processed by this plugin',
 };

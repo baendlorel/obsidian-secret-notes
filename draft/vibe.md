@@ -10,3 +10,14 @@
 3. 点击解密后，会弹窗输入密码，密码正确则显示解密后内容。
 4. 在文件被保存之前，则会再次自动以先前的密码加密。
 请你先说说你对需求的理解
+
+---
+
+规整样式：
+1. 对于plainblock额外增加一个样式。这个样式内容样式：
+```css
+  color: var(--text-warning);
+  fill: var(--text-warning);
+  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
+``` 
+确保未加密的block及其内部文字、背景都是黄色主题。也让水印样式也被包裹在这一样式下

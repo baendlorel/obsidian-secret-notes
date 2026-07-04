@@ -7,45 +7,91 @@ import {
   type TFile,
 } from 'obsidian';
 import { parseSecretPayload } from './crypto.js';
-import { SECRET_LANG } from './consts.js';
+import { DEFAULT_SETTINGS } from './consts.js';
 import { CryptorModal } from './components/cryptor.js';
 import { renderEncryptedBlock, renderPlainBlock, serializeSecretFence } from './components/secret-blocks.js';
+import { SecretNotesSettingTab } from './settings.js';
 import { t } from './i18n/index.js';
+import type { SecretNotesSettings } from './types.js';
 
 export default class SecretNotesPlugin extends Plugin {
+  settings: SecretNotesSettings = DEFAULT_SETTINGS;
+
   async onload(): Promise<void> {
-    this.registerMarkdownCodeBlockProcessor(SECRET_LANG, (source, el, ctx) => {
-      const payload = parseSecretPayload(source);
+    await this.loadSettings();
+    this.addSettingTab(new SecretNotesSettingTab(this));
+    this.registerProcessor();
+  }
 
-      if (payload) {
-        renderEncryptedBlock(el, payload, {
-          onView: async () => {
-            const result = await new CryptorModal(this.app).openEdit(payload);
-            if (!result) {
-              return;
-            }
+  async loadSettings(): Promise<void> {
+    const data = await this.loadData();
+    this.settings = { ...DEFAULT_SETTINGS, ...data };
+  }
 
-            // result is either NormalizedSecretPayload (re-encrypt) or string (permanent decrypt plaintext)
-            await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
-          },
-        });
-      } else {
-        renderPlainBlock(el, source, {
-          onEncrypt: async () => {
-            const result = await new CryptorModal(this.app).openEncrypt(source);
-            if (!result) {
-              return;
-            }
+  async saveSettings(): Promise<void> {
+    await this.saveData(this.settings);
+  }
 
-            await this.replaceSecretBlock(ctx, el, serializeSecretFence(result));
-          },
-        });
+  /**
+   * Register a code block processor for the current block name.
+   * Each call registers a NEW processor; old processors remain active but only
+   * handle their specific language. When block name changes, old blocks in the
+   * vault will no longer be processed (they become plain code blocks).
+   */
+  registerProcessor(): void {
+    this.registerMarkdownCodeBlockProcessor(this.settings.blockName, (source, el, ctx) => {
+      this.processSecretBlock(source, el, ctx);
+    });
+  }
+
+  /** Re-register processor for the new block name and re-render all previews. */
+  async applySettings(): Promise<void> {
+    await this.saveSettings();
+    this.registerProcessor();
+
+    // Trigger re-render of all open markdown preview views
+    this.app.workspace.iterateAllLeaves((leaf) => {
+      const { view } = leaf;
+      if (view instanceof MarkdownView) {
+        view.previewMode?.rerender(true);
       }
+    });
+  }
 
-      el.createDiv({
-        cls: 'kasukabe-watermark__secret-notes',
-        text: `v__VERSION__`, //  © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.
+  private processSecretBlock(
+    source: string,
+    el: HTMLElement,
+    ctx: MarkdownPostProcessorContext,
+  ): void {
+    const payload = parseSecretPayload(source);
+
+    if (payload) {
+      renderEncryptedBlock(el, payload, {
+        onView: async () => {
+          const result = await new CryptorModal(this.app).openEdit(payload);
+          if (!result) {
+            return;
+          }
+
+          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result, this.settings.blockName));
+        },
       });
+    } else {
+      renderPlainBlock(el, source, {
+        onEncrypt: async () => {
+          const result = await new CryptorModal(this.app).openEncrypt(source);
+          if (!result) {
+            return;
+          }
+
+          await this.replaceSecretBlock(ctx, el, serializeSecretFence(result, this.settings.blockName));
+        },
+      });
+    }
+
+    el.createDiv({
+      cls: 'kasukabe-watermark__secret-notes',
+      text: `v__VERSION__`, //  © __YEAR__ Kasukabe Tsumugi. All Rights Reserved.
     });
   }
 
@@ -66,9 +112,6 @@ export default class SecretNotesPlugin extends Plugin {
       return;
     }
 
-    // ! Only source/preview mode can we directly modify the editor; in preview mode, editor modifications won't
-    // ! be reflected in the editor.
-    // ! Must use vault.modify to actually write into disk
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
     if (activeView?.file?.path === file.path && activeView.getMode() === 'source') {
       this.replaceBlockInEditor(activeView, sectionInfo, replacement);

@@ -1,3 +1,7 @@
+export interface SecretNotesSettings {
+  blockName: string;
+}
+
 export interface SecretPayload {
   v: number;
   title?: string;

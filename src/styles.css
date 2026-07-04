@@ -1,5 +1,23 @@
 .secret-notes-panel {
   margin: 1em 0;
+  position: relative;
+}
+
+.secret-notes-panel--plain {
+  color: var(--text-warning);
+  fill: var(--text-warning);
+  background: color-mix(in srgb, var(--text-warning) 14%, transparent);
+  padding: 1rem;
+  border-radius: 14px;
+}
+
+.secret-notes-panel--plain .secret-notes-card {
+  background: transparent;
+  border-color: var(--text-warning);
+}
+
+.secret-notes-panel--plain .kasukabe-watermark__secret-notes {
+  color: var(--text-warning);
 }
 
 .secret-notes__encrypt-form {

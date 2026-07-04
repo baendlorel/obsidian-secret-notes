@@ -1,10 +1,10 @@
 import type { SecretBlock, SecretPayload } from '../types.js';
-import { isFooter, isHeader, SECRET_LANG } from '../consts.js';
+import { isFooter, isHeader } from '../consts.js';
 import { t } from '../i18n/index.js';
 import { setTooltip } from 'obsidian';
 import { lockIcon, unlockIcon } from '../assets/icons.js';
 
-export const findSecretBlocks = (content: string): SecretBlock[] => {
+export const findSecretBlocks = (content: string, lang: string): SecretBlock[] => {
   const lines = content.split('\n');
   const blocks: SecretBlock[] = [];
   let offset = 0;
@@ -17,7 +17,7 @@ export const findSecretBlocks = (content: string): SecretBlock[] => {
     offset += line.length + 1;
 
     if (startLine === -1) {
-      if (isHeader(line)) {
+      if (isHeader(line, lang)) {
         startLine = i;
         startOffset = lineOffset;
       }
@@ -43,8 +43,8 @@ export const findSecretBlocks = (content: string): SecretBlock[] => {
   return blocks;
 };
 
-export const serializeSecretFence = (entry: SecretPayload | string): string =>
-  `\`\`\`${SECRET_LANG}\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
+export const serializeSecretFence = (entry: SecretPayload | string, lang: string): string =>
+  `\`\`\`${lang}\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
 
 export const renderPlainBlock = (
   el: HTMLElement,
@@ -53,8 +53,9 @@ export const renderPlainBlock = (
 ): void => {
   el.empty();
   el.addClass('secret-notes-panel');
+  el.addClass('secret-notes-panel--plain');
 
-  const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain secret-notes-card__bg--warning' });
+  const card = el.createDiv({ cls: 'secret-notes-card secret-notes-card--plain' });
   setTooltip(card, t('点击以加密'), { delay: 50 });
 
   const title = card.createDiv({ cls: 'secret-notes-card__title secret-notes-card__plaintext' });
