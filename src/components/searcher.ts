@@ -65,8 +65,7 @@ export class Searcher {
     this.keydownHandler = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'f') {
         e.preventDefault();
-        const selectionStart = this.textarea.selectionStart;
-        const selectionEnd = this.textarea.selectionEnd;
+        const { selectionStart, selectionEnd } = this.textarea;
         if (selectionStart !== selectionEnd) {
           const selected = this.textarea.value.substring(selectionStart, selectionEnd);
           this.input.value = selected;
@@ -122,7 +121,9 @@ export class Searcher {
     let pos = 0;
     while (true) {
       const idx = text.indexOf(q, pos);
-      if (idx === -1) break;
+      if (idx === -1) {
+        break;
+      }
       matches.push(idx);
       pos = idx + 1;
     }
@@ -154,18 +155,22 @@ export class Searcher {
 
   next(): void {
     const query = this.input.value;
-    if (!query) return;
-    this.search(query, 'next');
+    if (query) {
+      this.search(query, 'next');
+    }
   }
 
   prev(): void {
     const query = this.input.value;
-    if (!query) return;
-    this.search(query, 'prev');
+    if (query) {
+      this.search(query, 'prev');
+    }
   }
 
   private selectCurrentMatch(focus: boolean = false): void {
-    if (this.state.current === -1 || this.state.matches.length === 0) return;
+    if (this.state.current === -1 || this.state.matches.length === 0) {
+      return;
+    }
     const start = this.state.matches[this.state.current];
     const end = start + this.state.query.length;
     this.textarea.setSelectionRange(start, end);

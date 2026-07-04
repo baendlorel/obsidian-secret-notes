@@ -54,6 +54,7 @@ export abstract class SecretModal extends Modal {
         labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
       }
 
+      // eslint-disable-next-line @typescript-eslint/init-declarations
       let field: HTMLTextAreaElement | HTMLInputElement;
       if (o.type === 'textarea') {
         field = control.createEl('textarea');
