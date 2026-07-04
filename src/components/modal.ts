@@ -54,13 +54,10 @@ export abstract class SecretModal extends Modal {
         labelEl.createSpan({ cls: 'secret-notes__required-mark', text: '*' });
       }
 
-      // eslint-disable-next-line @typescript-eslint/init-declarations
-      let field: HTMLTextAreaElement | HTMLInputElement;
-      if (o.type === 'textarea') {
-        field = control.createEl('textarea');
+      const field = o.type === 'textarea' ? control.createEl('textarea') : control.createEl('input');
+      if (field instanceof HTMLTextAreaElement) {
         field.className = 'secret-notes-modal__textarea';
       } else {
-        field = control.createEl('input');
         field.className = 'secret-notes-modal__input';
         field.type = o.type ?? 'text';
       }

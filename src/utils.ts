@@ -59,7 +59,7 @@ export const secondClickConfirm = (btn: HTMLButtonElement, confirmedText: string
       countdown--;
       btn.setText(`${originText} (${countdown})`);
       if (countdown <= 0) {
-        clearInterval(interval);
+        window.clearInterval(interval);
         btn.disabled = false;
         btn.setText(confirmedText);
       }
