@@ -11,7 +11,7 @@ const version = pkg.version;
 const tag = `${version}`;
 
 console.log(`📦 当前版本: ${version}`);
-console.log(`🏷️  Tag 名称: ${tag}`);
+console.log(`🏷️ Tag 名称: ${tag}`);
 
 try {
   // 检查 tag 是否已存在
