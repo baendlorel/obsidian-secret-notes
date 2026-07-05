@@ -168,6 +168,17 @@
   justify-content: flex-end;
 }
 
+.secret-notes-modal__warning {
+  color: var(--text-warning);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 0.55rem 0.75rem;
+  margin-bottom: 0.5rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text-warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-warning) 30%, transparent);
+}
+
 .secret-notes-modal__actions button {
   cursor: pointer;
   transition:

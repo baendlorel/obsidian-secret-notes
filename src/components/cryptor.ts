@@ -25,12 +25,22 @@ export class CryptorModal extends SecretModal {
     );
   }
 
+  private showWarning(containerEl: HTMLElement): void {
+    const warningEl = containerEl.createDiv({
+      cls: 'secret-notes-modal__warning',
+      text: t('请保护好密文完整性，错位和丢失字符会导致数据永久丢失'),
+    });
+    containerEl.insertBefore(warningEl, containerEl.firstChild);
+  }
+
   private showEditForm(payload: NormalizedSecretPayload, plaintext: string, password: string): void {
     this.modalEl.addClass('secret-notes-modal--decrypted');
     this.titleEl.setText(t('编辑'));
     this.contentEl.empty();
 
     const form = this.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
+
+    this.showWarning(form);
 
     // Row 1: title + hint side-by-side
     const row = form.createDiv({ cls: 'secret-notes__form-row' });
@@ -98,7 +108,7 @@ export class CryptorModal extends SecretModal {
     this.prepare();
     this.titleEl.setText(t('加密'));
 
-    this.createForm<FormEncrypt>(
+    const form = this.createForm<FormEncrypt>(
       [
         {
           name: 'password',
@@ -118,6 +128,8 @@ export class CryptorModal extends SecretModal {
       ],
       (data) => this.encrypt(plaintext, data),
     );
+
+    this.showWarning(form);
 
     this.open();
     return this.wait<NormalizedSecretPayload>();

@@ -36,6 +36,8 @@ export const dict = {
   '解密后内容将以明文保存，此操作不可撤销。':
     'After decryption, the content will be saved as plaintext. This action cannot be undone.',
   搜索: 'Search',
+  '请保护好密文完整性，错位和丢失字符会导致数据永久丢失':
+    'Please protect ciphertext integrity — any shift or missing character will cause permanent data loss',
   上一个: 'Previous',
   下一个: 'Next',
   无结果: 'No results',
