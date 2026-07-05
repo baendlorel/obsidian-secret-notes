@@ -10,40 +10,6 @@ Save private content in Obsidian with a `secret` code block. The plugin renders 
 - 🔎 Built-in editor search: click the search icon in the plaintext editor, or select text and press `Ctrl+F` to search quickly.
 - ⚙️ The processed code block name is configurable in plugin settings. The default is `secret`.
 
-## Interface and features
-
-### 1. Plaintext and encrypted blocks
-
-![secret-and-cleartext](assets/secret-and-cleartext.png)
-
-A `secret` code block is rendered as a card in Reading view / Live Preview:
-
-- The unlock icon means the block is still plaintext. Click it to start encryption.
-- The lock icon means the block is encrypted. Click it to enter the password and view/edit the content.
-- The plugin version watermark is shown in the lower-left corner of each card, making the renderer easy to identify.
-
-### 2. Password input
-
-![input-password](assets/input-password.png)
-
-After clicking an encrypted card, a password modal opens:
-
-- Enter the correct password to open the plaintext editor.
-- If a password hint was saved during encryption, it appears in the password input placeholder.
-- Plaintext is never shown when the password is incorrect.
-
-### 3. Plaintext editor
-
-![cleartext-edtor](assets/cleartext-edtor.png)
-
-After verification, the plaintext editor opens:
-
-- Edit the **Title** and **Password hint** at the top.
-- Edit decrypted body content in the large text area.
-- Use the search bar in the upper-right corner to search the body; previous/next navigation is supported, and jumped matches flash for easier positioning.
-- Click **Confirm** to re-encrypt with the current password and write back to the original code block.
-- Click **Decrypt permanently** and confirm the second-click prompt to write plaintext back into the `secret` code block. You can encrypt it again later by clicking the plaintext card.
-
 ## Quick start
 
 Create a `secret` code block in any note:
@@ -54,23 +20,50 @@ Put private content here
 ```
 </pre>
 
-Switch to Reading view or Live Preview, click the unlock card, then enter the password, confirmation password, and optional title/hint. After confirmation, the file content becomes ciphertext JSON similar to:
-
-```json
+<pre>
+```secret
 {"v":1,"title":"","hint":"","encrypted":"<iv>:<tag>:<ciphertext>","date":"2026-07-04T00:00:00.000Z"}
 ```
+</pre>
+These two blocks will be rendered like:
+
+![secret-and-cleartext](assets/secret-and-cleartext.png)
+
 
 Click the locked card again and enter the password to view or edit the plaintext.
+- The unlock icon means the block is still plaintext. Click it to start encryption.
+- The lock icon means the block is encrypted. Click it to enter the password and view/edit the content.
+
+### Password input
+
+![input-password](assets/input-password.png)
+
+
+After clicking an encrypted card, a password modal opens:
+
+- Enter the correct password to open the plaintext editor.
+- If a password hint was saved during encryption, it appears in the password input placeholder.
+- Plaintext is never shown when the password is incorrect.
+
+### Plaintext editor
+
+![cleartext-edtor](assets/cleartext-edtor.png)
+
+After verification, the plaintext editor opens:
+
+- Use the search bar in the upper-right corner to search the body; previous/next navigation is supported, and jumped matches flash for easier positioning.
+- Click **Decrypt permanently** and confirm the second-click prompt to write plaintext back into the `secret` code block. You can encrypt it again later by clicking the plaintext card.
+
 
 ## Operations
 
-| Action | Entry point | Result |
-| --- | --- | --- |
-| Encrypt | Click a plaintext card | Enter password and confirmation password, then encrypt and write back to the current block |
-| View / Edit | Click an encrypted card | Enter password to open the plaintext editor, where title, hint, and body can be changed |
-| Save again | **Confirm** in the plaintext editor | Re-encrypt with the current password and overwrite the original block |
-| Decrypt permanently | **Decrypt permanently** in the plaintext editor | After second-click confirmation, write plaintext back into the `secret` code block |
-| Search body | Search in the upper-right of the plaintext editor, or press `Ctrl+F` in the body | Find, navigate, and flash-highlight matches inside the text area |
+| Action              | Entry point                                                                      | Result                                                                                     |
+| ------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Encrypt             | Click a plaintext card                                                           | Enter password and confirmation password, then encrypt and write back to the current block |
+| View / Edit         | Click an encrypted card                                                          | Enter password to open the plaintext editor, where title, hint, and body can be changed    |
+| Save again          | **Confirm** in the plaintext editor                                              | Re-encrypt with the current password and overwrite the original block                      |
+| Decrypt permanently | **Decrypt permanently** in the plaintext editor                                  | After second-click confirmation, write plaintext back into the `secret` code block         |
+| Search body         | Search in the upper-right of the plaintext editor, or press `Ctrl+F` in the body | Find, navigate, and flash-highlight matches inside the text area                           |
 
 > Write-back behavior: in source / Live Preview editing state, the current editor block is replaced directly; in Reading view, the file is modified through the Obsidian vault API.
 
