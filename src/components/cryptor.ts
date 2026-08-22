@@ -25,22 +25,17 @@ export class CryptorModal extends SecretModal {
     );
   }
 
-  private showWarning(containerEl: HTMLElement): void {
-    const warningEl = containerEl.createDiv({
-      cls: 'secret-notes-modal__warning',
-      text: t('请保护好密文完整性，错位和丢失字符会导致数据永久丢失'),
-    });
-    containerEl.insertBefore(warningEl, containerEl.firstChild);
-  }
-
   private showEditForm(payload: NormalizedSecretPayload, plaintext: string, password: string): void {
     this.modalEl.addClass('secret-notes-modal--decrypted');
     this.titleEl.setText(t('编辑'));
     this.contentEl.empty();
 
     const form = this.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
-
-    this.showWarning(form);
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      // use the same logic as confirm
+      confirmHandler();
+    });
 
     // Row 1: title + hint side-by-side
     const row = form.createDiv({ cls: 'secret-notes__form-row' });
@@ -71,15 +66,17 @@ export class CryptorModal extends SecretModal {
 
     const footer = this.contentEl.createDiv({ cls: 'secret-notes-modal__actions' });
 
-    const decryptBtn = footer.createEl('button', { cls: 'mod-warning', type: 'button', text: t('永久解密') });
+    const decryptBtn = footer.createEl('button', { cls: 'mod-warning', text: t('永久解密') });
+    decryptBtn.setAttr('type', 'button');
     secondClickConfirm(decryptBtn, t('确认永久解密'), () => {
       this.handoffInProgress = true;
       this.finish(textarea.value.trim());
       this.close();
     });
 
-    const confirmBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });
-    confirmBtn.addEventListener('click', () => {
+    const confirmBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta' });
+    confirmBtn.setAttr('type', 'button');
+    const confirmHandler = () => {
       decryptBtn.disabled = true;
       confirmBtn.disabled = true;
 
@@ -101,14 +98,15 @@ export class CryptorModal extends SecretModal {
           decryptBtn.disabled = false;
           confirmBtn.disabled = false;
         });
-    });
+    };
+    confirmBtn.addEventListener('click', confirmHandler);
   }
 
   openEncrypt(plaintext = ''): Promise<NormalizedSecretPayload | null> {
     this.prepare();
     this.titleEl.setText(t('加密'));
 
-    const form = this.createForm<FormEncrypt>(
+    this.createForm<FormEncrypt>(
       [
         {
           name: 'password',
@@ -128,8 +126,6 @@ export class CryptorModal extends SecretModal {
       ],
       (data) => this.encrypt(plaintext, data),
     );
-
-    this.showWarning(form);
 
     this.open();
     return this.wait<NormalizedSecretPayload>();

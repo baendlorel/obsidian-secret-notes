@@ -43,6 +43,10 @@ export abstract class SecretModal extends Modal {
   protected createForm<T = unknown>(inputs: InputElementOptions[], onYes: (data: T) => Promise<void>) {
     this.contentEl.empty();
     const form = this.contentEl.createEl('form', { cls: 'secret-notes__encrypt-form' });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      yesHandler();
+    });
 
     // # input elements
     for (let i = 0; i < inputs.length; i++) {
@@ -75,11 +79,13 @@ export abstract class SecretModal extends Modal {
     // # footer
     const footer = this.contentEl.createDiv({ cls: 'secret-notes-modal__actions' });
 
-    const noBtn = footer.createEl('button', { text: t('取消'), type: 'button' });
+    const noBtn = footer.createEl('button', { text: t('取消') });
+    noBtn.setAttr('type', 'button');
     noBtn.addEventListener('click', () => this.close());
 
-    const yesBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta', type: 'button' });
-    yesBtn.addEventListener('click', () => {
+    const yesBtn = footer.createEl('button', { text: t('确认'), cls: 'mod-cta' });
+    yesBtn.setAttr('type', 'button');
+    const yesHandler = () => {
       noBtn.disabled = true;
       yesBtn.disabled = true;
 
@@ -92,7 +98,8 @@ export abstract class SecretModal extends Modal {
           noBtn.disabled = false;
           yesBtn.disabled = false;
         });
-    });
+    };
+    yesBtn.addEventListener('click', yesHandler);
 
     return form;
   }
