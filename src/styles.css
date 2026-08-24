@@ -322,6 +322,32 @@
   margin-left: 2px;
 }
 
+/* Unlocked image card: no click affordance */
+.secret-notes-card--image {
+  cursor: default;
+}
+
+.secret-notes-card--image:hover {
+  opacity: 1;
+  box-shadow: none;
+}
+
+.secret-notes-card--image:active {
+  transform: none;
+  box-shadow: none;
+}
+
+.secret-notes-card__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(80vh, 900px);
+  object-fit: contain;
+  border-radius: 10px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
 @keyframes secret-notes-flash {
   0% {
     background: var(--interactive-accent);

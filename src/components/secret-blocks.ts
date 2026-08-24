@@ -1,4 +1,4 @@
-import type { SecretBlock, SecretPayload } from '../types.js';
+import type { SecretBlock, SecretImagePayload, SecretPayload } from '../types.js';
 import { isFooter, isHeader } from '../consts.js';
 import { t } from '../i18n/index.js';
 import { setTooltip } from 'obsidian';
@@ -43,7 +43,10 @@ export const findSecretBlocks = (content: string, lang: string): SecretBlock[] =
   return blocks;
 };
 
-export const serializeSecretFence = (entry: SecretPayload | string, lang: string): string =>
+export const serializeSecretFence = (
+  entry: SecretPayload | SecretImagePayload | string,
+  lang: string,
+): string =>
   `\`\`\`${lang}\n${typeof entry === 'string' ? entry : JSON.stringify(entry)}\n\`\`\`\n`;
 
 export const renderPlainBlock = (
@@ -69,7 +72,7 @@ export const renderPlainBlock = (
 
 export const renderEncryptedBlock = (
   el: HTMLElement,
-  payload: SecretPayload,
+  payload: Pick<SecretPayload, 'title'>,
   { onView }: { onView: () => Promise<void> },
 ): void => {
   el.empty();

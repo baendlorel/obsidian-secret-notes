@@ -41,4 +41,24 @@ export const dict = {
   上一个: 'Previous',
   下一个: 'Next',
   无结果: 'No results',
+  // # secretimage
+  添加加密图片: 'Add encrypted image',
+  点击添加图片: 'Click to add an image',
+  加密图片: 'Encrypted image',
+  '不支持的图片格式，仅支持 PNG/JPEG/GIF/WebP':
+    'Unsupported image format; only PNG/JPEG/GIF/WebP are supported',
+  '图片过大，最大支持 $1': 'Image is too large; the limit is $1',
+  '加密图片文件丢失，请检查 .secretimage 文件夹':
+    'The encrypted image file is missing; please check the .secretimage folder',
+  加密图片文件已损坏: 'The encrypted image file is corrupted',
+  '图片格式与记录不符，文件可能被替换过':
+    'Image format does not match the record; the file may have been replaced',
+  重新上锁: 'Re-lock',
+  已导出为普通图片: 'Exported as a plain image',
+  '加密图片仍被引用，已保留加密文件':
+    'The encrypted image is still referenced elsewhere; the encrypted file was kept',
+  无法解析此加密图片块: 'Cannot parse this encrypted image block',
+  图片渲染失败: 'Failed to render the image',
+  写入图片文件失败: 'Failed to write the image file',
+  '块名称不能是 secretimage': 'The block name cannot be "secretimage"',
 };

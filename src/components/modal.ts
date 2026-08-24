@@ -104,16 +104,25 @@ export abstract class SecretModal extends Modal {
     return form;
   }
 
-  protected async encrypt(plaintext: string, data: FormEncrypt): Promise<void> {
-    const { title, hint, password, passwordConfirm } = data;
-
-    if (!password) {
+  /** Shared password validation: non-empty and confirmed. Notifies on failure. */
+  protected checkPasswordForm(data: Pick<FormEncrypt, 'password' | 'passwordConfirm'>): boolean {
+    if (!data.password) {
       new Notice(t('请输入密码'));
-      return;
+      return false;
     }
 
-    if (password !== passwordConfirm) {
+    if (data.password !== data.passwordConfirm) {
       new Notice(t('两次输入的密码不一致'));
+      return false;
+    }
+
+    return true;
+  }
+
+  protected async encrypt(plaintext: string, data: FormEncrypt): Promise<void> {
+    const { title, hint, password } = data;
+
+    if (!this.checkPasswordForm(data)) {
       return;
     }
 

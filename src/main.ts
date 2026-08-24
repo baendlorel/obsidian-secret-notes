@@ -6,13 +6,33 @@ import {
   type MarkdownSectionInformation,
   type TFile,
 } from 'obsidian';
-import { parseSecretPayload } from './crypto.js';
-import { DEFAULT_SETTINGS } from './consts.js';
+import {
+  decryptBytes,
+  encryptBytes,
+  parseEncryptedParts,
+  parseSecretImagePayload,
+  parseSecretPayload,
+} from './crypto.js';
+import { DEFAULT_SETTINGS, MAX_IMAGE_BYTES, SECRET_VERSION, SECRETIMAGE_LANG } from './consts.js';
 import { CryptorModal } from './components/cryptor.js';
+import { ImageCryptorModal } from './components/image-cryptor.js';
 import { renderEncryptedBlock, renderPlainBlock, serializeSecretFence } from './components/secret-blocks.js';
+import {
+  renderBrokenImageBlock,
+  renderEmptyImageBlock,
+  renderUnlockedImageBlock,
+  SecretImageRenderChild,
+} from './components/secret-image-blocks.js';
+import {
+  countSecretImageReferences,
+  readSecretImageFile,
+  trashSecretImageFile,
+  writeSecretImageFile,
+} from './secretimage-store.js';
 import { SecretNotesSettingTab } from './settings.js';
 import { t } from './i18n/index.js';
-import type { SecretNotesSettings } from './types.js';
+import { detectImageFormat, sanitizeFilename } from './utils.js';
+import type { NormalizedSecretImagePayload, SecretImagePayload, SecretNotesSettings } from './types.js';
 
 export default class SecretNotesPlugin extends Plugin {
   settings: SecretNotesSettings = DEFAULT_SETTINGS;
@@ -21,11 +41,19 @@ export default class SecretNotesPlugin extends Plugin {
     await this.loadSettings();
     this.addSettingTab(new SecretNotesSettingTab(this));
     this.registerProcessor();
+    // The secretimage block name is fixed on purpose: renaming would orphan existing blocks.
+    this.registerMarkdownCodeBlockProcessor(SECRETIMAGE_LANG, (source, el, ctx) => {
+      this.processSecretImageBlock(source, el, ctx);
+    });
   }
 
   async loadSettings(): Promise<void> {
     const data = (await this.loadData()) as SecretNotesSettings;
     this.settings = { ...DEFAULT_SETTINGS, ...data };
+    // defensive: "secretimage" is reserved for the image processor
+    if (!this.settings.blockName || this.settings.blockName.toLowerCase() === SECRETIMAGE_LANG) {
+      this.settings.blockName = DEFAULT_SETTINGS.blockName;
+    }
   }
 
   async saveSettings(): Promise<void> {
@@ -86,21 +114,211 @@ export default class SecretNotesPlugin extends Plugin {
     }
   }
 
+  private processSecretImageBlock(source: string, el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+    const payload = parseSecretImagePayload(source);
+
+    if (payload) {
+      renderEncryptedBlock(el, payload, {
+        onView: () => this.unlockImage(payload, ctx, el),
+      });
+      return;
+    }
+
+    if (source.trim() === '') {
+      renderEmptyImageBlock(el, {
+        onAdd: (file) => void this.encryptImageFile(file, ctx, el),
+      });
+      return;
+    }
+
+    // Non-empty but unparseable: never offer "add image" here, the broken JSON
+    // may still be repairable by hand.
+    renderBrokenImageBlock(el);
+  }
+
+  private async encryptImageFile(file: File, ctx: MarkdownPostProcessorContext, el: HTMLElement): Promise<void> {
+    if (file.size > MAX_IMAGE_BYTES) {
+      new Notice(t('图片过大，最大支持 $1', `${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)}MB`));
+      return;
+    }
+
+    const buffer = await file.arrayBuffer();
+    const format = detectImageFormat(new Uint8Array(buffer));
+    if (!format) {
+      new Notice(t('不支持的图片格式，仅支持 PNG/JPEG/GIF/WebP'));
+      return;
+    }
+
+    const input = await new ImageCryptorModal(this.app).openImageEncrypt();
+    if (!input) {
+      return;
+    }
+
+    const parts = await encryptBytes(buffer, input.password).catch((e) => {
+      console.error(e);
+      return null;
+    });
+    if (!parts) {
+      new Notice(t('加密失败，请稍后重试'));
+      return;
+    }
+
+    const name = await writeSecretImageFile(this.app.vault, parts).catch((e) => {
+      console.error(e);
+      return null;
+    });
+    if (!name) {
+      new Notice(t('加密失败，请稍后重试'));
+      return;
+    }
+
+    const payload: NormalizedSecretImagePayload = {
+      v: SECRET_VERSION,
+      title: input.title,
+      hint: input.hint,
+      date: new Date().toISOString(),
+      image: { name, ext: format.ext },
+    };
+
+    const replaced = await this.replaceSecretBlock(
+      ctx,
+      el,
+      serializeSecretFence(payload as SecretImagePayload, SECRETIMAGE_LANG),
+    );
+    if (!replaced) {
+      // roll back the orphaned ciphertext
+      await trashSecretImageFile(this.app.vault, name);
+    }
+  }
+
+  private async unlockImage(
+    payload: NormalizedSecretImagePayload,
+    ctx: MarkdownPostProcessorContext,
+    el: HTMLElement,
+  ): Promise<void> {
+    const verify = async (password: string): Promise<ArrayBuffer> => {
+      const text = await readSecretImageFile(this.app.vault, payload.image.name).catch((e) => {
+        console.error(e);
+        new Notice(t('加密图片文件丢失，请检查 .secretimage 文件夹'));
+        return null;
+      });
+      if (!text) {
+        throw new Error(`secret image file not found: ${payload.image.name}`);
+      }
+
+      const parts = parseEncryptedParts(text);
+      if (!parts) {
+        new Notice(t('加密图片文件已损坏'));
+        throw new Error('corrupted secret image file');
+      }
+
+      try {
+        return await decryptBytes(parts, password);
+      } catch (e) {
+        console.error(e);
+        new Notice(t('密码错误，解密失败'));
+        throw e;
+      }
+    };
+
+    const buffer = await new ImageCryptorModal(this.app).openImageUnlock(payload, verify);
+    if (!buffer) {
+      return;
+    }
+
+    const detected = detectImageFormat(new Uint8Array(buffer));
+    if (detected && detected.ext !== payload.image.ext) {
+      new Notice(t('图片格式与记录不符，文件可能被替换过'));
+    }
+    const mime = detected?.mime ?? `image/${payload.image.ext}`;
+
+    const url = URL.createObjectURL(new Blob([buffer], { type: mime }));
+    // safety net: revoke when the block leaves the DOM (rerender / close / unload)
+    ctx.addChild(new SecretImageRenderChild(el, () => URL.revokeObjectURL(url)));
+
+    const lock = () => {
+      URL.revokeObjectURL(url);
+      renderEncryptedBlock(el, payload, {
+        onView: () => this.unlockImage(payload, ctx, el),
+      });
+    };
+
+    renderUnlockedImageBlock(el, payload, {
+      blobUrl: url,
+      onRelock: lock,
+      onExport: () =>
+        void this.exportImageAsAttachment({ payload, buffer, blobUrl: url, ctx, el }).catch(console.error),
+    });
+  }
+
+  private async exportImageAsAttachment(opts: {
+    payload: NormalizedSecretImagePayload;
+    buffer: ArrayBuffer;
+    blobUrl: string;
+    ctx: MarkdownPostProcessorContext;
+    el: HTMLElement;
+  }): Promise<void> {
+    const { payload, buffer, blobUrl, ctx, el } = opts;
+
+    // counted BEFORE replacing this block; >1 means someone else still holds a reference
+    const references = await countSecretImageReferences(this.app.vault, payload.image.name);
+
+    const detected = detectImageFormat(new Uint8Array(buffer));
+    const ext = detected?.ext ?? payload.image.ext;
+    const filename = `${sanitizeFilename(payload.title) || 'secret-image'}.${ext}`;
+
+    const file = await this.writeImageAttachment(filename, buffer, ctx.sourcePath).catch((e) => {
+      console.error(e);
+      return null;
+    });
+    if (!file) {
+      new Notice(t('写入图片文件失败'));
+      return;
+    }
+
+    const embed = `!${this.app.fileManager.generateMarkdownLink(file, ctx.sourcePath)}`;
+    const replaced = await this.replaceSecretBlock(ctx, el, `${embed}\n`);
+
+    URL.revokeObjectURL(blobUrl);
+
+    if (!replaced) {
+      return;
+    }
+
+    if (references > 1) {
+      new Notice(t('加密图片仍被引用，已保留加密文件'));
+    } else {
+      await trashSecretImageFile(this.app.vault, payload.image.name);
+    }
+
+    new Notice(t('已导出为普通图片'));
+  }
+
+  private async writeImageAttachment(
+    filename: string,
+    buffer: ArrayBuffer,
+    sourcePath: string,
+  ): Promise<TFile> {
+    const path = await this.app.fileManager.getAvailablePathForAttachment(filename, sourcePath);
+    return this.app.vault.createBinary(path, buffer);
+  }
+
+  /** Returns false when the block could not be located/replaced. */
   private async replaceSecretBlock(
     ctx: MarkdownPostProcessorContext,
     el: HTMLElement,
     replacement: string,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const sectionInfo = ctx.getSectionInfo(el);
     if (!sectionInfo) {
       new Notice(t('无法定位当前 secret 代码块'));
-      return;
+      return false;
     }
 
     const file = this.app.vault.getFileByPath(ctx.sourcePath);
     if (!file) {
       new Notice(t('无法找到当前文件'));
-      return;
+      return false;
     }
 
     const activeView = this.app.workspace.getActiveViewOfType(MarkdownView);
@@ -109,6 +327,8 @@ export default class SecretNotesPlugin extends Plugin {
     } else {
       await this.replaceBlockInFile(file, sectionInfo, replacement);
     }
+
+    return true;
   }
 
   private replaceBlockInEditor(view: MarkdownView, sectionInfo: MarkdownSectionInformation, replacement: string): void {

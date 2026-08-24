@@ -7,3 +7,9 @@ export const DEFAULT_SETTINGS: SecretNotesSettings = {
 export const SECRET_VERSION = 1;
 export const isHeader = (v: string, lang: string) => new RegExp(`^\`\`\`${lang}\\s*$`).test(v);
 export const isFooter = (v: string) => /^```\s*$/.test(v);
+
+export const SECRETIMAGE_LANG = 'secretimage';
+export const SECRETIMAGE_DIR = '.secretimage';
+export const SECRETIMAGE_EXT = '.secretimg';
+export const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+export const SUPPORTED_IMAGE_EXTS = ['png', 'jpg', 'gif', 'webp'];
